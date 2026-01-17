@@ -146,7 +146,7 @@ export class ClientPollingTransport extends ClientTransport {
               if (this.encryptionManager.isEncrypted(text)) {
                 text = await this.encryptionManager.decryptMessage(text);
               }
-            } catch (error) {
+            } catch {
               // 解密失败，可能是未加密的消息或密钥不匹配
               // 如果是加密消息但解密失败，记录错误
               if (this.encryptionManager.isEncrypted(text)) {

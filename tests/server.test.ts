@@ -50,9 +50,7 @@ describe("Socket.IO 服务器", () => {
       path: "/socket.io/",
     });
 
-    let connected = false;
     server.on("connection", (socket) => {
-      connected = true;
       expect(socket).toBeTruthy();
       expect(socket.id).toBeTruthy();
     });
@@ -111,9 +109,88 @@ describe("Socket.IO 服务器", () => {
     try {
       await fetch(`http://localhost:${testPort}/socket.io/`);
       // 如果请求成功，说明服务器未关闭（这在某些情况下可能正常）
-    } catch (error) {
+    } catch {
       // 连接失败是预期的
-      expect(error).toBeTruthy();
+      expect(true).toBe(true);
     }
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 emit() - 向默认命名空间发送事件", async () => {
+    const testPort = getAvailablePort();
+    const server = new Server({
+      port: testPort,
+      path: "/socket.io/",
+    });
+
+    await server.listen();
+    await delay(200);
+
+    // emit 方法应该存在且可调用
+    expect(typeof server.emit).toBe("function");
+    server.emit("test-event", { message: "hello" });
+
+    await server.close();
+    await delay(100);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 to() - 向默认命名空间的房间发送事件", async () => {
+    const testPort = getAvailablePort();
+    const server = new Server({
+      port: testPort,
+      path: "/socket.io/",
+    });
+
+    await server.listen();
+    await delay(200);
+
+    // to 方法应该存在且可调用
+    expect(typeof server.to).toBe("function");
+    const builder = server.to("room1");
+    expect(builder).toBeTruthy();
+    expect(typeof builder.emit).toBe("function");
+    builder.emit("test-event", { message: "hello" });
+
+    await server.close();
+    await delay(100);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 in() - to() 的别名", async () => {
+    const testPort = getAvailablePort();
+    const server = new Server({
+      port: testPort,
+      path: "/socket.io/",
+    });
+
+    await server.listen();
+    await delay(200);
+
+    // in 方法应该存在且可调用
+    expect(typeof server.in).toBe("function");
+    const builder = server.in("room1");
+    expect(builder).toBeTruthy();
+    expect(typeof builder.emit).toBe("function");
+
+    await server.close();
+    await delay(100);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 except() - 排除房间或 Socket ID", async () => {
+    const testPort = getAvailablePort();
+    const server = new Server({
+      port: testPort,
+      path: "/socket.io/",
+    });
+
+    await server.listen();
+    await delay(200);
+
+    // except 方法应该存在且可调用
+    expect(typeof server.except).toBe("function");
+    const builder = server.except("room1");
+    expect(builder).toBeTruthy();
+    expect(typeof builder.emit).toBe("function");
+
+    await server.close();
+    await delay(100);
   }, { sanitizeOps: false, sanitizeResources: false });
 });

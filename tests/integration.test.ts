@@ -16,9 +16,7 @@ describe("Socket.IO 集成测试", () => {
       path: "/socket.io/",
     });
 
-    let serverConnected = false;
     server.on("connection", (socket) => {
-      serverConnected = true;
       expect(socket).toBeTruthy();
       expect(socket.id).toBeTruthy();
     });
@@ -34,9 +32,8 @@ describe("Socket.IO 集成测试", () => {
       autoReconnect: false, // 测试中禁用自动重连，避免清理时的连接错误
     });
 
-    let clientConnected = false;
     client.on("connect", () => {
-      clientConnected = true;
+      // 测试连接事件
     });
 
     // 等待最多 3 秒
@@ -66,13 +63,8 @@ describe("Socket.IO 集成测试", () => {
       path: "/socket.io/",
     });
 
-    let serverReceived = false;
-    let serverData: any = null;
-
     server.on("connection", (socket) => {
-      socket.on("client-message", (data: any) => {
-        serverReceived = true;
-        serverData = data;
+      socket.on("client-message", (_data: any) => {
         socket.emit("server-response", { received: true });
       });
     });
@@ -88,12 +80,8 @@ describe("Socket.IO 集成测试", () => {
       autoReconnect: false, // 测试中禁用自动重连，避免清理时的连接错误
     });
 
-    let clientReceived = false;
-    let clientData: any = null;
-
-    client.on("server-response", (data) => {
-      clientReceived = true;
-      clientData = data;
+    client.on("server-response", (_data) => {
+      // 测试事件接收
     });
 
     // 等待最多 3 秒

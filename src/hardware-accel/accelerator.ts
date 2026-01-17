@@ -73,7 +73,7 @@ export class HardwareAccelerator {
    * @param data 数据数组
    * @returns 哈希值数组
    */
-  async batchHash(data: Uint8Array[]): Promise<Uint32Array> {
+  batchHash(data: Uint8Array[]): Uint32Array {
     if (this.wasmInstance) {
       // 使用 WebAssembly 加速
       return this.batchHashWasm(data);
@@ -86,7 +86,7 @@ export class HardwareAccelerator {
   /**
    * WebAssembly 批量哈希计算
    */
-  private async batchHashWasm(data: Uint8Array[]): Promise<Uint32Array> {
+  private batchHashWasm(data: Uint8Array[]): Uint32Array {
     // 如果 WebAssembly 模块可用，使用它
     // 这里简化实现，实际应该调用 WASM 函数
     return this.batchHashJS(data);
@@ -196,7 +196,7 @@ export class HardwareAccelerator {
    * @param data 数据数组
    * @returns 编码后的数据
    */
-  async batchEncode(data: string[]): Promise<Uint8Array[]> {
+  batchEncode(data: string[]): Uint8Array[] {
     if (this.wasmInstance) {
       // 使用 WebAssembly 加速
       return this.batchEncodeWasm(data);
@@ -209,7 +209,7 @@ export class HardwareAccelerator {
   /**
    * WebAssembly 批量编码
    */
-  private async batchEncodeWasm(data: string[]): Promise<Uint8Array[]> {
+  private batchEncodeWasm(data: string[]): Uint8Array[] {
     // 如果 WebAssembly 模块可用，使用它
     // 这里简化实现，实际应该调用 WASM 函数
     return this.batchEncodeJS(data);

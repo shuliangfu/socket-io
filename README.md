@@ -4,6 +4,7 @@
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-151%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
 
@@ -18,7 +19,7 @@
 ### 核心功能
 
 - **跨运行时支持**：
-  - 原生支持 Deno 2.5 和 Bun 1.3.5，无需 Node.js
+  - 原生支持 Deno 2.6+ 和 Bun 1.3.5，无需 Node.js
   - 统一的 Socket.IO API，代码可在不同运行时无缝切换
   - 基于 @dreamer/runtime-adapter 实现运行时抽象
 
@@ -53,7 +54,8 @@
   - 连接生命周期事件（connect、disconnect、error）
   - 自定义事件发送和监听
   - 事件确认机制（acknowledgments）
-  - 支持事件监听器批量管理
+  - 一次性事件监听（once）
+  - 支持事件监听器批量管理（removeAllListeners）
 
 - **客户端功能**：
   - 自动连接和手动连接控制
@@ -151,7 +153,7 @@ bunx jsr add @dreamer/socket.io
 
 | 环境 | 版本要求 | 状态 |
 |------|---------|------|
-| **Deno** | 2.5 | ✅ 完全支持 |
+| **Deno** | 2.6+ | ✅ 完全支持 |
 | **Bun** | 1.3.5 | ✅ 完全支持 |
 | **服务端** | - | ✅ 支持（兼容 Deno 和 Bun 运行时） |
 | **客户端** | - | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
@@ -290,6 +292,108 @@ gameNamespace.on("connection", (socket) => {
 await io.listen();
 ```
 
+### 服务器级事件发送
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+await io.listen();
+
+// 向默认命名空间的所有 Socket 发送事件
+io.emit("server-announcement", { message: "服务器维护通知" });
+
+// 向默认命名空间的房间发送事件
+io.to("room-123").emit("room-notification", { message: "房间通知" });
+
+// 排除某些 Socket
+io.except("socket-id-456").emit("broadcast-message", { message: "广播消息" });
+
+// 获取所有 Socket ID
+const allSocketIds = await io.allSockets();
+console.log(`当前有 ${allSocketIds.size} 个连接`);
+
+// 批量操作
+await io.socketsJoin("room-123");  // 所有 Socket 加入房间
+await io.socketsLeave("room-123"); // 所有 Socket 离开房间
+await io.disconnectSockets();      // 断开所有连接
+```
+
+### Socket 高级功能
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+io.on("connection", (socket) => {
+  // 一次性事件监听
+  socket.once("welcome", (data) => {
+    console.log("收到欢迎消息（只接收一次）:", data);
+  });
+
+  // 向房间发送消息（不包括自己）
+  socket.to("room-123").emit("room-message", { text: "Hello" });
+
+  // 向所有其他 Socket 广播（不包括自己）
+  socket.broadcast.emit("user-joined", { userId: socket.id });
+
+  // 链式调用：向房间发送，排除某些 Socket
+  socket.to("room-123").except("socket-id-456").emit("message", data);
+
+  // 压缩大消息
+  socket.compress(true).emit("large-data", largeObject);
+
+  // 获取 Socket 所在的房间
+  const rooms = socket.rooms;
+  console.log(`Socket ${socket.id} 在 ${rooms.size} 个房间中`);
+
+  // 移除所有事件监听器
+  socket.on("cleanup", () => {
+    socket.removeAllListeners("chat-message");
+  });
+});
+
+await io.listen();
+```
+
+### 命名空间批量操作
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+const chatNamespace = io.of("/chat");
+
+chatNamespace.on("connection", (socket) => {
+  // 命名空间级别的操作
+});
+
+// 批量操作命名空间内的所有 Socket
+await chatNamespace.socketsJoin("general-room");
+await chatNamespace.socketsLeave("general-room");
+
+// 获取所有 Socket 实例
+const sockets = await chatNamespace.fetchSockets();
+console.log(`命名空间有 ${sockets.length} 个 Socket`);
+
+// 批量断开连接
+await chatNamespace.disconnectSockets();
+
+await io.listen();
+```
+
 ### 分布式部署（Redis 适配器）
 
 ```typescript
@@ -398,6 +502,16 @@ new Server(options?: ServerOptions)
 - `close(): Promise<void>`: 关闭服务器
 - `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
 - `of(name: string): Namespace`: 创建或获取命名空间
+- `emit(event: string, data?: any): void`: 向默认命名空间的所有 Socket 发送事件
+- `to(room: string): { emit: (event: string, data?: any) => void }`: 向默认命名空间的房间发送事件
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
+- `allSockets(): Promise<Set<string>>`: 获取所有 Socket ID
+- `fetchSockets(): Promise<SocketIOSocket[]>`: 获取所有 Socket 实例
+- `socketsJoin(room: string): Promise<void>`: 批量加入房间
+- `socketsLeave(room: string): Promise<void>`: 批量离开房间
+- `disconnectSockets(close?: boolean): Promise<void>`: 批量断开连接
+- `serverSideEmit(event: string, ...args: any[]): void`: 服务器端事件发送（用于跨服务器通信）
 
 ### Socket
 
@@ -407,15 +521,25 @@ Socket.IO 连接类，表示一个客户端连接。
 - `emit(event: string, data?: any, callback?: Function): void`: 发送事件
 - `on(event: string, listener: SocketEventListener): void`: 监听事件
 - `off(event: string, listener?: SocketEventListener): void`: 移除监听器
+- `once(event: string, listener: SocketEventListener): void`: 只监听一次事件
+- `removeAllListeners(event?: string): this`: 移除所有事件监听器（或指定事件的监听器）
 - `join(room: string): void`: 加入房间
 - `leave(room: string): void`: 离开房间
+- `to(room: string): { emit: (event: string, data?: any) => void }`: 向房间发送事件（不包括自己）
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
+- `broadcast: { emit: (event: string, data?: any) => void }`: 向所有其他 Socket 广播消息（不包括自己）
+- `compress(value: boolean): this`: 设置是否压缩下一次发送的消息
+- `getRooms(): Set<string>`: 获取 Socket 所在的房间列表
 - `disconnect(reason?: string): void`: 断开连接
 
 **属性**：
 - `id: string`: Socket 唯一标识
+- `nsp: string`: 命名空间
 - `handshake: Handshake`: 握手信息
 - `data: SocketData`: 数据存储对象
 - `connected: boolean`: 连接状态
+- `rooms: Set<string>`: Socket 所在的房间列表（只读）
 
 ### Namespace
 
@@ -425,8 +549,14 @@ Socket.IO 连接类，表示一个客户端连接。
 - `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
 - `emit(event: string, data?: any): void`: 向所有 Socket 发送事件
 - `to(room: string): { emit: (event: string, data?: any) => void }`: 向房间发送事件
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
 - `getSocket(socketId: string): SocketIOSocket | undefined`: 获取 Socket
 - `getSockets(): Map<string, SocketIOSocket>`: 获取所有 Socket
+- `socketsJoin(room: string): Promise<void>`: 批量加入房间
+- `socketsLeave(room: string): Promise<void>`: 批量离开房间
+- `fetchSockets(): Promise<SocketIOSocket[]>`: 获取所有 Socket 实例
+- `disconnectSockets(close?: boolean): Promise<void>`: 批量断开连接
 
 ### 适配器
 
@@ -478,7 +608,7 @@ MongoDB 分布式适配器，用于多服务器部署。
 详细的测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)
 
 **测试概览**:
-- ✅ 总测试数: 139
+- ✅ 总测试数: 151
 - ✅ 通过率: 100%
 - ✅ 测试覆盖: 核心功能、边界情况、集成场景
 

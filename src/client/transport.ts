@@ -3,7 +3,7 @@
  * 定义客户端传输层的通用接口
  */
 
-import { EnginePacket, EnginePacketType } from "../types.ts";
+import { EnginePacket } from "../types.ts";
 
 /**
  * 传输层事件监听器
@@ -75,8 +75,8 @@ export abstract class ClientTransport {
     for (const listener of this.listeners) {
       try {
         listener(packet);
-      } catch (error) {
-        console.error("传输层事件监听器错误:", error);
+      } catch {
+        // 忽略监听器错误
       }
     }
   }

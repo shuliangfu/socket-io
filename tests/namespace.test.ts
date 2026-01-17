@@ -4,8 +4,7 @@
  */
 
 import { describe, expect, it } from "@dreamer/test";
-import { Namespace } from "../src/mod.ts";
-import { EngineSocket } from "../src/mod.ts";
+import { EngineSocket, Namespace } from "../src/mod.ts";
 import { EnginePacketType, Handshake } from "../src/types.ts";
 import { delay } from "./test-utils.ts";
 
@@ -108,8 +107,6 @@ describe("Socket.IO 命名空间", () => {
 
   it("应该向房间广播消息", async () => {
     const namespace = new Namespace("/chat");
-    let messageReceived = false;
-    let receivedData: any = null;
 
     // 创建两个 Socket
     const handshake1: Handshake = {
@@ -121,12 +118,7 @@ describe("Socket.IO 命名空间", () => {
     const mockTransport1 = {
       send: (packet: any) => {
         if (packet.type === EnginePacketType.MESSAGE) {
-          messageReceived = true;
-          // 解析 Socket.IO 数据包
-          const data = packet.data as string;
-          if (data.includes("room-message")) {
-            receivedData = JSON.parse(data.match(/\[.*\]/)?.[0] || "{}");
-          }
+          // 测试消息发送
         }
       },
       close: () => {},
@@ -198,5 +190,154 @@ describe("Socket.IO 命名空间", () => {
 
     // 验证两个 Socket 都收到了消息
     expect(emitCount).toBeGreaterThanOrEqual(0);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 socketsJoin() - 批量加入房间", async () => {
+    const namespace = new Namespace("/chat");
+    const handshake: Handshake = {
+      query: {},
+      headers: new Headers(),
+      url: "http://localhost:3000",
+    };
+
+    const engineSocket1 = new EngineSocket("socket1", handshake);
+    const mockTransport1 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket1.setTransport(mockTransport1 as any);
+
+    const engineSocket2 = new EngineSocket("socket2", handshake);
+    const mockTransport2 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket2.setTransport(mockTransport2 as any);
+
+    const socket1 = await namespace.addSocket(engineSocket1);
+    const socket2 = await namespace.addSocket(engineSocket2);
+    await delay(100);
+
+    // 批量加入房间
+    await namespace.socketsJoin("room1");
+    await delay(100);
+
+    expect(socket1.rooms.has("room1")).toBe(true);
+    expect(socket2.rooms.has("room1")).toBe(true);
+    expect(namespace.getRoomSize("room1")).toBe(2);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 socketsLeave() - 批量离开房间", async () => {
+    const namespace = new Namespace("/chat");
+    const handshake: Handshake = {
+      query: {},
+      headers: new Headers(),
+      url: "http://localhost:3000",
+    };
+
+    const engineSocket1 = new EngineSocket("socket1", handshake);
+    const mockTransport1 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket1.setTransport(mockTransport1 as any);
+
+    const socket1 = await namespace.addSocket(engineSocket1);
+    await delay(100);
+
+    socket1.join("room1");
+    expect(namespace.getRoomSize("room1")).toBe(1);
+
+    // 批量离开房间
+    await namespace.socketsLeave("room1");
+    await delay(100);
+
+    expect(socket1.rooms.has("room1")).toBe(false);
+    expect(namespace.getRoomSize("room1")).toBe(0);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 fetchSockets() - 获取 Socket 实例集", async () => {
+    const namespace = new Namespace("/chat");
+    const handshake: Handshake = {
+      query: {},
+      headers: new Headers(),
+      url: "http://localhost:3000",
+    };
+
+    const engineSocket1 = new EngineSocket("socket1", handshake);
+    const mockTransport1 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket1.setTransport(mockTransport1 as any);
+
+    const engineSocket2 = new EngineSocket("socket2", handshake);
+    const mockTransport2 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket2.setTransport(mockTransport2 as any);
+
+    await namespace.addSocket(engineSocket1);
+    await namespace.addSocket(engineSocket2);
+    await delay(100);
+
+    // 获取所有 Socket
+    const sockets = await namespace.fetchSockets();
+    expect(sockets.length).toBe(2);
+    expect(sockets.some((s) => s.id === "socket1")).toBe(true);
+    expect(sockets.some((s) => s.id === "socket2")).toBe(true);
+
+    // 使用过滤器
+    const filteredSockets = await namespace.fetchSockets(
+      (socket) => socket.id === "socket1",
+    );
+    expect(filteredSockets.length).toBe(1);
+    expect(filteredSockets[0].id).toBe("socket1");
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 disconnectSockets() - 批量断开连接", async () => {
+    const namespace = new Namespace("/chat");
+    const handshake: Handshake = {
+      query: {},
+      headers: new Headers(),
+      url: "http://localhost:3000",
+    };
+
+    const engineSocket1 = new EngineSocket("socket1", handshake);
+    const mockTransport1 = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket1.setTransport(mockTransport1 as any);
+
+    const socket1 = await namespace.addSocket(engineSocket1);
+    await delay(100);
+
+    expect(socket1.connected).toBe(true);
+
+    // 批量断开连接
+    await namespace.disconnectSockets();
+    await delay(100);
+
+    expect(socket1.connected).toBe(false);
   }, { sanitizeOps: false, sanitizeResources: false });
 });

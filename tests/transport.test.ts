@@ -7,7 +7,6 @@ import { describe, expect, it } from "@dreamer/test";
 import { EnginePacketType } from "../src/types.ts";
 import { ClientPollingTransport, ClientWebSocketTransport } from "../src/client/mod.ts";
 import { TransportState } from "../src/client/transport.ts";
-import { delay } from "./test-utils.ts";
 
 describe("传输层", () => {
   describe("ClientPollingTransport", () => {
@@ -21,7 +20,7 @@ describe("传输层", () => {
       const transport = new ClientPollingTransport();
       let packetReceived = false;
 
-      transport.on((packet: any) => {
+      transport.on((_packet: any) => {
         packetReceived = true;
       });
 
@@ -69,7 +68,7 @@ describe("传输层", () => {
       const transport = new ClientWebSocketTransport();
       let packetReceived = false;
 
-      transport.on((packet: any) => {
+      transport.on((_packet: any) => {
         packetReceived = true;
       });
 

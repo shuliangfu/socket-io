@@ -8,6 +8,8 @@ Socket.IO 客户端库，用于浏览器环境，提供实时双向通信功能�
 - **自动降级**：从 WebSocket 自动降级到 HTTP 长轮询
 - **自动重连**：支持自动重连机制，可配置重连策略
 - **事件系统**：连接事件、消息事件、自定义事件支持
+- **一次性事件监听**：支持 `once()` 方法，只监听一次事件
+- **事件监听器管理**：支持 `removeAllListeners()` 批量移除监听器
 - **命名空间**：支持命名空间隔离不同业务场景
 - **事件确认**：支持事件确认机制（acknowledgments）
 
@@ -107,6 +109,30 @@ chatClient.on("connect", () => {
 });
 ```
 
+### 一次性事件监听
+
+```typescript
+// 只监听一次连接事件
+client.once("connect", () => {
+  console.log("首次连接成功");
+});
+
+// 只监听一次自定义事件
+client.once("welcome-message", (data) => {
+  console.log("收到欢迎消息:", data);
+});
+```
+
+### 移除事件监听器
+
+```typescript
+// 移除特定事件的所有监听器
+client.removeAllListeners("chat-message");
+
+// 移除所有事件的所有监听器
+client.removeAllListeners();
+```
+
 ## API 文档
 
 ### Client
@@ -136,6 +162,8 @@ new Client(options: ClientOptions)
 - `emit(event: string, data?: any, callback?: Function): void`: 发送事件
 - `on(event: string, listener: ClientEventListener): void`: 监听事件
 - `off(event: string, listener?: ClientEventListener): void`: 移除监听器
+- `once(event: string, listener: ClientEventListener): void`: 只监听一次事件
+- `removeAllListeners(event?: string): this`: 移除所有事件监听器（或指定事件的监听器）
 - `getId(): string`: 获取 Socket ID
 - `isConnected(): boolean`: 检查是否已连接
 

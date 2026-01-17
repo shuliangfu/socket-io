@@ -3,31 +3,51 @@
  * 管理 Socket.IO 服务器、连接、命名空间和事件
  */
 
-import { serve, type ServeHandle, upgradeWebSocket } from "@dreamer/runtime-adapter";
-import { EnginePacketType, Handshake, ServerEventListener, ServerOptions, TransportType } from "./types.ts";
-import { EngineSocket } from "./engine/socket.ts";
+import {
+  serve,
+  type ServeHandle,
+  upgradeWebSocket,
+} from "@dreamer/runtime-adapter";
+import { MemoryAdapter } from "./adapters/memory.ts";
+import type { AdapterMessage, SocketIOAdapter } from "./adapters/types.ts";
+import { CompressionManager } from "./compression/compression-manager.ts";
+import { EncryptionManager } from "./encryption/encryption-manager.ts";
+import { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
+import { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts";
+import { PollingBatchHandler } from "./engine/polling-batch-handler.ts";
 import { PollingTransport } from "./engine/polling-transport.ts";
+import { EngineSocket } from "./engine/socket.ts";
 import { WebSocketTransport } from "./engine/websocket-transport.ts";
+import { HardwareAccelerator } from "./hardware-accel/accelerator.ts";
 import { Namespace } from "./socketio/namespace.ts";
 import { SocketIOSocket } from "./socketio/socket.ts";
-import { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts";
-import { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
-import { PollingBatchHandler } from "./engine/polling-batch-handler.ts";
-import { CompressionManager } from "./compression/compression-manager.ts";
 import { StreamPacketProcessor } from "./streaming/stream-parser.ts";
-import { HardwareAccelerator } from "./hardware-accel/accelerator.ts";
-import { EncryptionManager } from "./encryption/encryption-manager.ts";
-import type { SocketIOAdapter, AdapterMessage } from "./adapters/types.ts";
-import { MemoryAdapter } from "./adapters/memory.ts";
+import {
+  EnginePacketType,
+  Handshake,
+  ServerEventListener,
+  ServerOptions,
+  TransportType,
+} from "./types.ts";
 
 /**
  * Socket.IO 服务器
  */
 export class Server {
   /** 服务器配置 */
-  public readonly options: Required<
-    Pick<ServerOptions, "path" | "pingTimeout" | "pingInterval" | "transports" | "allowPolling" | "pollingTimeout">
-  > & ServerOptions;
+  public readonly options:
+    & Required<
+      Pick<
+        ServerOptions,
+        | "path"
+        | "pingTimeout"
+        | "pingInterval"
+        | "transports"
+        | "allowPolling"
+        | "pollingTimeout"
+      >
+    >
+    & ServerOptions;
   /** Engine.IO Socket 连接池 */
   private engineSockets: Map<string, EngineSocket> = new Map();
   /** 命名空间映射 */
@@ -70,15 +90,27 @@ export class Server {
       allowPolling: options.allowPolling !== false,
       pollingTimeout: options.pollingTimeout || 60000,
       ...options,
-    } as Required<
-      Pick<ServerOptions, "path" | "pingTimeout" | "pingInterval" | "transports" | "allowPolling" | "pollingTimeout">
-    > & ServerOptions;
+    } as
+      & Required<
+        Pick<
+          ServerOptions,
+          | "path"
+          | "pingTimeout"
+          | "pingInterval"
+          | "transports"
+          | "allowPolling"
+          | "pollingTimeout"
+        >
+      >
+      & ServerOptions;
 
     // 创建或使用提供的适配器
     this.adapter = this.options.adapter || new MemoryAdapter();
 
     // 生成服务器 ID
-    this.serverId = `server-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    this.serverId = `server-${Date.now()}-${
+      Math.random().toString(36).substring(2, 9)
+    }`;
 
     // 创建默认命名空间
     const defaultNamespace = new Namespace("/", this.adapter, this.accelerator);
@@ -105,8 +137,8 @@ export class Server {
 
     // 创建流式处理器（如果启用流式处理）
     if (this.options.streaming) {
-      const maxPacketSize = this.options.maxPacketSize || 10 * 1024 * 1024; // 默认 10MB
       // 流式处理器会在需要时创建（每个连接一个）
+      // maxPacketSize 会在创建流式处理器时使用
     }
 
     // 创建硬件加速器（如果启用硬件加速）
@@ -133,13 +165,18 @@ export class Server {
           if (transport) {
             try {
               // 创建虚拟 GET 请求用于批量处理
-              const request = new Request("http://localhost/polling", { method: "GET" });
+              const request = new Request("http://localhost/polling", {
+                method: "GET",
+              });
               const response = await transport.handlePoll(request);
               responses.set(sid, response);
             } catch (error) {
               // 如果处理失败，返回错误响应
               console.error(`轮询批量处理失败 (sid: ${sid}):`, error);
-              responses.set(sid, new Response("Internal Server Error", { status: 500 }));
+              responses.set(
+                sid,
+                new Response("Internal Server Error", { status: 500 }),
+              );
             }
           } else {
             responses.set(sid, new Response("Not Found", { status: 404 }));
@@ -154,8 +191,21 @@ export class Server {
 
   /**
    * 启动服务器
-   * @param host 主机地址（可选）
-   * @param port 端口号（可选）
+   *
+   * 启动 HTTP 服务器并开始监听连接。在启动前会：
+   * 1. 初始化分布式适配器
+   * 2. 订阅适配器消息
+   * 3. 创建 HTTP 服务器并开始监听
+   *
+   * @param host - 主机地址（可选），默认为配置中的 host 或 "0.0.0.0"
+   * @param port - 端口号（可选），默认为配置中的 port 或 3000
+   * @returns Promise<void> 服务器启动成功时解析
+   *
+   * @example
+   * ```typescript
+   * await server.listen("0.0.0.0", 3000);
+   * console.log("服务器已启动");
+   * ```
    */
   async listen(host?: string, port?: number): Promise<void> {
     const serverHost = host || this.options.host || "0.0.0.0";
@@ -190,12 +240,14 @@ export class Server {
         port: serverPort,
         host: serverHost === "0.0.0.0" ? undefined : serverHost,
       },
-      async (request: Request) => {
+      (request: Request) => {
         return this.handleRequest(request);
       },
     );
 
-    console.log(`Socket.IO 服务器运行在 http://${serverHost}:${serverPort}${this.options.path}`);
+    console.log(
+      `Socket.IO 服务器运行在 http://${serverHost}:${serverPort}${this.options.path}`,
+    );
   }
 
   /**
@@ -235,7 +287,7 @@ export class Server {
 
     // 处理轮询传输
     if (transport === "polling") {
-      return this.handlePolling(request, sid);
+      return await this.handlePolling(request, sid);
     }
 
     // 处理 WebSocket 传输
@@ -280,7 +332,10 @@ export class Server {
     this.adaptivePollingTimeout.updateConnections(this.engineSockets.size + 1);
 
     // 创建轮询传输
-    const pollingTransport = new PollingTransport(pollingTimeout, this.encryptionManager);
+    const pollingTransport = new PollingTransport(
+      pollingTimeout,
+      this.encryptionManager,
+    );
     engineSocket.setTransport(pollingTransport);
     this.pollingTransports.set(sid, pollingTransport);
     this.engineSockets.set(sid, engineSocket);
@@ -291,24 +346,30 @@ export class Server {
 
     // 监听 Engine.IO 消息
     engineSocket.on(async (packet) => {
-      if (packet.type === EnginePacketType.MESSAGE && typeof packet.data === "string") {
+      if (
+        packet.type === EnginePacketType.MESSAGE &&
+        typeof packet.data === "string"
+      ) {
         // 这是 Socket.IO 数据包，需要路由到命名空间
         await this.handleSocketIOMessage(engineSocket, packet.data);
       }
     });
 
     // 返回握手响应
-    return new Response(JSON.stringify({
-      sid,
-      upgrades: ["websocket"],
-      pingInterval: this.options.pingInterval,
-      pingTimeout: this.options.pingTimeout,
-    }), {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
+    return new Response(
+      JSON.stringify({
+        sid,
+        upgrades: ["websocket"],
+        pingInterval: this.options.pingInterval,
+        pingTimeout: this.options.pingTimeout,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       },
-    });
+    );
   }
 
   /**
@@ -317,7 +378,10 @@ export class Server {
    * @param sid Socket ID
    * @returns HTTP 响应
    */
-  private async handlePolling(request: Request, sid: string | undefined): Promise<Response> {
+  private async handlePolling(
+    request: Request,
+    sid: string | undefined,
+  ): Promise<Response> {
     if (!sid) {
       return new Response("Bad Request", { status: 400 });
     }
@@ -334,17 +398,21 @@ export class Server {
 
     // 如果是 GET 请求（轮询等待），检查是否有待发送的数据包
     // 如果有待发送的数据包，立即处理，不使用批量处理器（避免延迟）
-    const hasPendingPackets = (pollingTransport as any).pendingPackets?.length > 0;
+    const hasPendingPackets =
+      (pollingTransport as any).pendingPackets?.length > 0;
 
     // 如果是 GET 请求（轮询等待），且批量处理器可用，且没有待发送的数据包，使用批量处理
-    if (request.method === "GET" && this.pollingBatchHandler && !pollingTransport.hasPendingPoll() && !hasPendingPackets) {
+    if (
+      request.method === "GET" && this.pollingBatchHandler &&
+      !pollingTransport.hasPendingPoll() && !hasPendingPackets
+    ) {
       return new Promise<Response>((resolve) => {
         this.pollingBatchHandler!.addPoll(sid, resolve);
       });
     }
 
     // 否则直接处理（POST 请求、已有待处理请求、或有待发送的数据包）
-    return pollingTransport.handlePoll(request);
+    return await pollingTransport.handlePoll(request);
   }
 
   /**
@@ -396,14 +464,17 @@ export class Server {
    * @param engineSocket Engine.IO Socket
    * @param data Socket.IO 数据包字符串
    */
-  private async handleSocketIOMessage(engineSocket: EngineSocket, data: string): Promise<void> {
+  private async handleSocketIOMessage(
+    engineSocket: EngineSocket,
+    data: string,
+  ): Promise<void> {
     // 解析 Socket.IO 数据包以获取命名空间
     let nsp = "/";
     try {
       const { decodePacket } = await import("./socketio/parser.ts");
       const packet = decodePacket(data);
       nsp = packet.nsp || "/";
-    } catch (error) {
+    } catch {
       // 解析失败，使用默认命名空间
       // 忽略解析错误
     }
@@ -430,9 +501,23 @@ export class Server {
   }
 
   /**
-   * 监听连接事件
-   * @param event 事件名称（必须是 "connection"）
-   * @param listener 监听器函数
+   * 监听默认命名空间的连接事件
+   *
+   * 当有新的 Socket 连接到默认命名空间（"/"）时，会触发 connection 事件。
+   * 这是 Server 级别的便捷方法，实际是代理到默认命名空间的 connection 事件。
+   *
+   * @param event - 事件名称，必须是 "connection"
+   * @param listener - 监听器函数，接收 Socket 实例作为参数
+   *
+   * @throws {Error} 如果事件名称不是 "connection" 则抛出错误
+   *
+   * @example
+   * ```typescript
+   * server.on("connection", (socket) => {
+   *   console.log("新连接:", socket.id);
+   *   socket.emit("welcome", { message: "欢迎" });
+   * });
+   * ```
    */
   on(event: "connection", listener: ServerEventListener): void {
     if (event !== "connection") {
@@ -447,9 +532,24 @@ export class Server {
   }
 
   /**
-   * 获取命名空间
-   * @param name 命名空间名称
-   * @returns 命名空间
+   * 获取或创建命名空间
+   *
+   * 如果命名空间已存在，直接返回。如果不存在，创建新的命名空间并返回。
+   *
+   * @param name - 命名空间名称，必须以 "/" 开头，例如 "/chat", "/game"
+   * @returns 命名空间实例
+   *
+   * @example
+   * ```typescript
+   * // 获取默认命名空间
+   * const defaultNamespace = server.of("/");
+   *
+   * // 创建或获取聊天命名空间
+   * const chatNamespace = server.of("/chat");
+   * chatNamespace.on("connection", (socket) => {
+   *   console.log("用户加入聊天室");
+   * });
+   * ```
    */
   of(name: string): Namespace {
     if (!this.namespaces.has(name)) {
@@ -457,6 +557,292 @@ export class Server {
       this.namespaces.set(name, namespace);
     }
     return this.namespaces.get(name)!;
+  }
+
+  /**
+   * 向默认命名空间的所有 Socket 发送事件（标准 Socket.IO API）
+   *
+   * 这是 Server 级别的便捷方法，实际是代理到默认命名空间的 emit 方法。
+   *
+   * @param event - 事件名称，可以是任意字符串
+   * @param data - 事件数据，可以是任意类型
+   *
+   * @example
+   * ```typescript
+   * // 向所有连接的 Socket 发送系统通知
+   * server.emit("system-notification", { message: "系统维护中" });
+   * ```
+   */
+  emit(event: string, data?: any): void {
+    const defaultNamespace = this.namespaces.get("/");
+    if (defaultNamespace) {
+      defaultNamespace.emit(event, data);
+    }
+  }
+
+  /**
+   * 向默认命名空间的房间发送事件（标准 Socket.IO API）
+   *
+   * 这是 Server 级别的便捷方法，实际是代理到默认命名空间的 to 方法。
+   * 返回一个链式调用对象，可以继续调用 `to()`, `in()`, `except()`, `compress()` 等方法。
+   *
+   * @param room - 房间名称
+   * @returns 返回一个链式调用对象，包含 `emit`, `to`, `in`, `except`, `compress` 等方法
+   *
+   * @example
+   * ```typescript
+   * // 向房间发送消息
+   * server.to("room-123").emit("message", { text: "Hello" });
+   * ```
+   */
+  to(room: string): ReturnType<Namespace["to"]> {
+    const defaultNamespace = this.namespaces.get("/");
+    if (defaultNamespace) {
+      return defaultNamespace.to(room);
+    }
+    // 如果默认命名空间不存在，返回一个空操作对象
+    const noop = () => {};
+    return {
+      emit: noop,
+      to: () => this.to(""),
+      in: () => this.to(""),
+      except: () => this.to(""),
+      compress: () => this.to(""),
+    } as ReturnType<Namespace["to"]>;
+  }
+
+  /**
+   * 向默认命名空间的房间发送事件（标准 Socket.IO API，to 的别名）
+   *
+   * 功能与 `to()` 方法完全相同，只是为了提供更符合语义的 API。
+   *
+   * @param room - 房间名称
+   * @returns 返回与 `to()` 方法相同的链式调用对象
+   *
+   * @example
+   * ```typescript
+   * server.in("room-123").emit("message", { text: "Hello" });
+   * ```
+   */
+  in(room: string): ReturnType<Namespace["to"]> {
+    return this.to(room);
+  }
+
+  /**
+   * 排除指定的房间或 Socket ID（标准 Socket.IO API）
+   *
+   * 这是 Server 级别的便捷方法，实际是代理到默认命名空间的 except 方法。
+   * 返回一个链式调用对象，可以配合 `to()` 或 `in()` 使用。
+   *
+   * @param room - 房间名称或 Socket ID，或数组（可以同时排除多个）
+   * @returns 返回一个链式调用对象，包含 `emit`, `to`, `in`, `except`, `compress` 等方法
+   *
+   * @example
+   * ```typescript
+   * // 向房间发送消息，但排除特定 Socket
+   * server.to("room-123").except("socket-id-456").emit("message", data);
+   * ```
+   */
+  except(room: string | string[]): ReturnType<Namespace["except"]> {
+    const defaultNamespace = this.namespaces.get("/");
+    if (defaultNamespace) {
+      return defaultNamespace.except(room);
+    }
+    // 如果默认命名空间不存在，返回一个空操作对象
+    const noop = () => {};
+    return {
+      emit: noop,
+      to: () => this.to(""),
+      in: () => this.to(""),
+      except: () => this.except(""),
+      compress: () => this.except(""),
+    } as ReturnType<Namespace["except"]>;
+  }
+
+  /**
+   * 获取所有命名空间中所有连接的 Socket ID（标准 Socket.IO API）
+   *
+   * 遍历所有命名空间，收集所有已连接的 Socket ID。
+   *
+   * @returns Promise<Set<string>> Socket ID 集合
+   *
+   * @example
+   * ```typescript
+   * const socketIds = await server.allSockets();
+   * console.log(`当前有 ${socketIds.size} 个连接`);
+   * ```
+   */
+  async allSockets(): Promise<Set<string>> {
+    // 标准 Socket.IO API 中 allSockets 是异步的（可能需要从适配器获取远程 socket）
+    await Promise.resolve();
+    const socketIds = new Set<string>();
+    for (const namespace of this.namespaces.values()) {
+      for (const socket of namespace.getSockets().values()) {
+        if (socket.connected) {
+          socketIds.add(socket.id);
+        }
+      }
+    }
+    return socketIds;
+  }
+
+  /**
+   * 获取匹配条件下的 Socket 实例集（标准 Socket.IO API）
+   *
+   * 遍历所有命名空间，根据过滤条件收集 Socket 实例。
+   *
+   * @param filter - 过滤函数（可选），用于选择符合条件的 Socket
+   * @returns Promise<SocketIOSocket[]> Socket 实例数组
+   *
+   * @example
+   * ```typescript
+   * // 获取所有 Socket
+   * const allSockets = await server.fetchSockets();
+   *
+   * // 获取符合条件的 Socket
+   * const userSockets = await server.fetchSockets((socket) => {
+   *   return socket.data.userId === "user-123";
+   * });
+   * ```
+   */
+  async fetchSockets(
+    filter?: (socket: SocketIOSocket) => boolean,
+  ): Promise<SocketIOSocket[]> {
+    // 标准 Socket.IO API 中 fetchSockets 是异步的（可能需要从适配器获取远程 socket）
+    await Promise.resolve();
+    const sockets: SocketIOSocket[] = [];
+    for (const namespace of this.namespaces.values()) {
+      for (const socket of namespace.getSockets().values()) {
+        if (socket.connected) {
+          if (!filter || filter(socket)) {
+            sockets.push(socket);
+          }
+        }
+      }
+    }
+    return sockets;
+  }
+
+  /**
+   * 批量让 Socket 加入房间（标准 Socket.IO API）
+   *
+   * 根据过滤条件选择 Socket，然后让它们加入指定的房间。
+   * 操作会应用到所有命名空间。
+   *
+   * @param rooms - 房间名称或房间名称数组
+   * @param filter - 过滤函数（可选），用于选择要加入房间的 Socket
+   * @returns Promise<void> 操作完成时解析
+   *
+   * @example
+   * ```typescript
+   * // 让所有 Socket 加入房间
+   * await server.socketsJoin("room-123");
+   *
+   * // 让符合条件的 Socket 加入多个房间
+   * await server.socketsJoin(["room-1", "room-2"], (socket) => {
+   *   return socket.data.userId === "user-123";
+   * });
+   * ```
+   */
+  async socketsJoin(
+    rooms: string | string[],
+    filter?: (socket: SocketIOSocket) => boolean,
+  ): Promise<void> {
+    const roomArray = Array.isArray(rooms) ? rooms : [rooms];
+    const sockets = await this.fetchSockets(filter);
+    for (const socket of sockets) {
+      for (const room of roomArray) {
+        socket.join(room);
+      }
+    }
+  }
+
+  /**
+   * 批量让 Socket 离开房间（标准 Socket.IO API）
+   *
+   * 根据过滤条件选择 Socket，然后让它们离开指定的房间。
+   * 操作会应用到所有命名空间。
+   *
+   * @param rooms - 房间名称或房间名称数组
+   * @param filter - 过滤函数（可选），用于选择要离开房间的 Socket
+   * @returns Promise<void> 操作完成时解析
+   *
+   * @example
+   * ```typescript
+   * // 让所有 Socket 离开房间
+   * await server.socketsLeave("room-123");
+   *
+   * // 让符合条件的 Socket 离开多个房间
+   * await server.socketsLeave(["room-1", "room-2"], (socket) => {
+   *   return socket.data.userId === "user-123";
+   * });
+   * ```
+   */
+  async socketsLeave(
+    rooms: string | string[],
+    filter?: (socket: SocketIOSocket) => boolean,
+  ): Promise<void> {
+    const roomArray = Array.isArray(rooms) ? rooms : [rooms];
+    const sockets = await this.fetchSockets(filter);
+    for (const socket of sockets) {
+      for (const room of roomArray) {
+        socket.leave(room);
+      }
+    }
+  }
+
+  /**
+   * 批量断开 Socket 连接（标准 Socket.IO API）
+   *
+   * 根据过滤条件选择 Socket，然后断开它们的连接。
+   * 如果 `close` 为 true，还会关闭底层 Engine.IO 连接。
+   * 操作会应用到所有命名空间。
+   *
+   * @param close - 是否关闭底层连接（默认：false），如果为 true 会强制关闭连接
+   * @param filter - 过滤函数（可选），用于选择要断开的 Socket
+   * @returns Promise<void> 操作完成时解析
+   *
+   * @example
+   * ```typescript
+   * // 断开所有 Socket 连接
+   * await server.disconnectSockets();
+   *
+   * // 断开符合条件的 Socket 连接，并关闭底层连接
+   * await server.disconnectSockets(true, (socket) => {
+   *   return socket.data.userId === "user-123";
+   * });
+   * ```
+   */
+  async disconnectSockets(
+    close = false,
+    filter?: (socket: SocketIOSocket) => boolean,
+  ): Promise<void> {
+    const sockets = await this.fetchSockets(filter);
+    for (const socket of sockets) {
+      socket.disconnect();
+      if (close) {
+        socket.getEngineSocket().close();
+      }
+    }
+  }
+
+  /**
+   * 跨服务器实例广播事件（服务器端事件）
+   * @param event 事件名称
+   * @param data 事件数据
+   */
+  async serverSideEmit(event: string, ...data: any[]): Promise<void> {
+    // 通过适配器广播到其他服务器
+    if (this.adapter) {
+      const message: AdapterMessage = {
+        event: `server-side-${event}`,
+        data,
+      };
+      const result = this.adapter.broadcast(message);
+      if (result instanceof Promise) {
+        await result;
+      }
+    }
   }
 
   /**
@@ -469,7 +855,7 @@ export class Server {
     }
 
     // 然后关闭所有轮询传输，确保所有待处理的轮询请求都能响应
-    for (const [sid, pollingTransport] of this.pollingTransports.entries()) {
+    for (const [_sid, pollingTransport] of this.pollingTransports.entries()) {
       pollingTransport.close();
     }
     this.pollingTransports.clear();
@@ -505,7 +891,7 @@ export class Server {
    */
   private async handleAdapterMessage(
     message: AdapterMessage,
-    fromServerId: string,
+    _fromServerId: string,
   ): Promise<void> {
     // 如果是房间广播消息
     if (message.room && message.namespace) {
@@ -523,7 +909,9 @@ export class Server {
         // 只处理本地 Socket
         for (const socketId of allSocketIds) {
           const socket = namespace.getSocket(socketId);
-          if (socket && socket.connected && socketId !== message.excludeSocketId) {
+          if (
+            socket && socket.connected && socketId !== message.excludeSocketId
+          ) {
             if (message.packet) {
               // 如果有数据包，直接发送
               const { encodePacket } = await import("./socketio/parser.ts");

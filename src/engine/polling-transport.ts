@@ -3,10 +3,10 @@
  * 使用 HTTP 长轮询作为传输方式
  */
 
+import type { EncryptionManager } from "../encryption/encryption-manager.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { decodePayload, encodePayload } from "./parser.ts";
 import { Transport } from "./transport.ts";
-import type { EncryptionManager } from "../encryption/encryption-manager.ts";
 
 /**
  * 轮询请求回调
@@ -47,12 +47,12 @@ export class PollingTransport extends Transport {
   async handlePoll(request: Request): Promise<Response> {
     // 如果是 GET 请求，表示客户端在等待数据
     if (request.method === "GET") {
-      return this.handlePollGet();
+      return await this.handlePollGet();
     }
 
     // 如果是 POST 请求，表示客户端在发送数据
     if (request.method === "POST") {
-      return this.handlePollPost(request);
+      return await this.handlePollPost(request);
     }
 
     return new Response("Method Not Allowed", { status: 405 });
@@ -69,7 +69,9 @@ export class PollingTransport extends Transport {
       this.pendingPackets = [];
 
       // 检查是否所有数据包都是 MESSAGE 类型
-      const allMessages = packets.every((p) => p.type === EnginePacketType.MESSAGE);
+      const allMessages = packets.every((p) =>
+        p.type === EnginePacketType.MESSAGE
+      );
 
       let payload = encodePayload(packets);
 
@@ -113,7 +115,7 @@ export class PollingTransport extends Transport {
           if (this.encryptionManager.isEncrypted(text)) {
             text = await this.encryptionManager.decryptMessage(text);
           }
-        } catch (error) {
+        } catch {
           // 解密失败，可能是未加密的消息或密钥不匹配
           // 如果是加密消息但解密失败，返回错误
           if (this.encryptionManager.isEncrypted(text)) {
@@ -129,7 +131,7 @@ export class PollingTransport extends Transport {
       }
 
       return this.createResponse("ok");
-    } catch (error) {
+    } catch {
       return new Response("Bad Request", { status: 400 });
     }
   }
@@ -167,7 +169,9 @@ export class PollingTransport extends Transport {
     this.pendingPackets = [];
 
     // 检查是否所有数据包都是 MESSAGE 类型
-    const allMessages = packets.every((p) => p.type === EnginePacketType.MESSAGE);
+    const allMessages = packets.every((p) =>
+      p.type === EnginePacketType.MESSAGE
+    );
 
     let payload = encodePayload(packets);
 

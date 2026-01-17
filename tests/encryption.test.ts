@@ -139,11 +139,9 @@ describe("消息加密", () => {
 
     await server.listen();
 
-    let connectionError = false;
-
     server.on("connection", (socket) => {
       socket.on("error", () => {
-        connectionError = true;
+        // 测试错误处理
       });
     });
 
@@ -160,7 +158,6 @@ describe("消息加密", () => {
 
     // 使用 Promise.race 添加超时保护
     let connectionSucceeded = false;
-    let decryptionError = false;
 
     await Promise.race([
       new Promise<void>((resolve, reject) => {
@@ -189,7 +186,7 @@ describe("消息加密", () => {
           }, 1000);
         });
 
-        client.on("connect_error", (error) => {
+        client.on("connect_error", (_error) => {
           clearTimeout(timeout);
           // 连接错误是预期的（因为未加密）
           client.disconnect();
@@ -214,7 +211,7 @@ describe("消息加密", () => {
     await delay(200);
     await server.close();
     await delay(300); // 增加延迟，确保端口释放
-  }, { sanitizeOps: false, sanitizeResources: false });
+  }, { sanitizeOps: false, sanitizeResources: false, timeout: 10000 });
 
   it("应该支持不同的加密算法", async () => {
     const algorithms = [

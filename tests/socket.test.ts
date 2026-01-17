@@ -120,10 +120,93 @@ describe("Socket.IO Socket", () => {
     const socket = new SocketIOSocket(engineSocket, "/");
 
     socket.join("room1");
-    expect(socket.getRooms().has("room1")).toBe(true);
+    expect(socket.rooms.has("room1")).toBe(true);
 
     socket.leave("room1");
-    expect(socket.getRooms().has("room1")).toBe(false);
+    expect(socket.rooms.has("room1")).toBe(false);
+
+    // 清理资源
+    engineSocket.close();
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 once() 方法 - 只监听一次事件", async () => {
+    const engineSocket = createMockEngineSocket("test-id");
+    const socket = new SocketIOSocket(engineSocket, "/");
+    let callCount = 0;
+
+    socket.once("test-event", () => {
+      callCount++;
+    });
+
+    // 模拟接收两次事件
+    const { encodePacket } = await import("../src/socketio/parser.ts");
+    const socketIOPacket1 = {
+      type: SocketIOPacketType.EVENT,
+      data: ["test-event", {}],
+    };
+    const encoded1 = encodePacket(socketIOPacket1);
+    (socket as any).handleSocketIOPacket(encoded1);
+
+    const socketIOPacket2 = {
+      type: SocketIOPacketType.EVENT,
+      data: ["test-event", {}],
+    };
+    const encoded2 = encodePacket(socketIOPacket2);
+    (socket as any).handleSocketIOPacket(encoded2);
+
+    // 应该只被调用一次
+    expect(callCount).toBe(1);
+
+    // 清理资源
+    engineSocket.close();
+  }, { sanitizeOps: false, sanitizeResources: false });
+
+  it("应该支持 removeAllListeners() 方法", async () => {
+    const engineSocket = createMockEngineSocket("test-id");
+    const socket = new SocketIOSocket(engineSocket, "/");
+    let callCount1 = 0;
+    let callCount2 = 0;
+
+    socket.on("test-event-1", () => {
+      callCount1++;
+    });
+    socket.on("test-event-2", () => {
+      callCount2++;
+    });
+
+    // 移除特定事件的所有监听器
+    socket.removeAllListeners("test-event-1");
+
+    // 模拟接收事件
+    const { encodePacket } = await import("../src/socketio/parser.ts");
+    const packet1 = {
+      type: SocketIOPacketType.EVENT,
+      data: ["test-event-1", {}],
+    };
+    const encoded1 = encodePacket(packet1);
+    (socket as any).handleSocketIOPacket(encoded1);
+
+    const packet2 = {
+      type: SocketIOPacketType.EVENT,
+      data: ["test-event-2", {}],
+    };
+    const encoded2 = encodePacket(packet2);
+    (socket as any).handleSocketIOPacket(encoded2);
+
+    expect(callCount1).toBe(0);
+    expect(callCount2).toBe(1);
+
+    // 移除所有事件的所有监听器
+    socket.removeAllListeners();
+
+    const packet3 = {
+      type: SocketIOPacketType.EVENT,
+      data: ["test-event-2", {}],
+    };
+    const encoded3 = encodePacket(packet3);
+    (socket as any).handleSocketIOPacket(encoded3);
+
+    expect(callCount2).toBe(1); // 不应该再增加
 
     // 清理资源
     engineSocket.close();
@@ -133,7 +216,6 @@ describe("Socket.IO Socket", () => {
     const engineSocket = createMockEngineSocket("test-id");
     const socket = new SocketIOSocket(engineSocket, "/");
     let ackReceived = false;
-    let ackData: any = null;
 
     // 拦截发送以捕获确认
     const originalSend = engineSocket.send.bind(engineSocket);
@@ -147,9 +229,9 @@ describe("Socket.IO Socket", () => {
           ackReceived = true;
           // 解析确认数据
           try {
-            const decoded = decodeSocketIOPacket(data);
-            ackData = decoded.data;
-          } catch (e) {
+            const _decoded = decodeSocketIOPacket(data);
+            // ackData = _decoded.data; // 已移除未使用的变量
+          } catch {
             // 忽略解析错误
           }
         }
@@ -157,7 +239,7 @@ describe("Socket.IO Socket", () => {
       originalSend(packet);
     };
 
-    socket.on("test-event", (data, callback) => {
+    socket.on("test-event", (_data, callback) => {
       if (callback) {
         callback({ status: "ok" });
       }
@@ -202,11 +284,9 @@ describe("Socket.IO Socket", () => {
     const engineSocket = createMockEngineSocket("test-id");
     const socket = new SocketIOSocket(engineSocket, "/");
     let disconnectEventFired = false;
-    let disconnectReason: any = undefined;
 
-    socket.on("disconnect", (reason) => {
+    socket.on("disconnect", () => {
       disconnectEventFired = true;
-      disconnectReason = reason;
     });
 
     // 模拟接收断开连接数据包

@@ -4,7 +4,6 @@
 
 import { describe, it, expect } from "@dreamer/test";
 import { StreamParser, StreamPacketProcessor } from "../src/streaming/stream-parser.ts";
-import { EnginePacketType } from "../src/types.ts";
 
 describe("流式解析器", () => {
   it("应该创建流式解析器", () => {

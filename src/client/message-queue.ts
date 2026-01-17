@@ -56,7 +56,7 @@ export class ClientMessageQueue {
    * @param emit 发送函数
    * @returns 发送的消息数量
    */
-  async flush(emit: (event: string, data: any) => void): Promise<number> {
+  flush(emit: (event: string, data: any) => void): number {
     const now = Date.now();
     let sentCount = 0;
 
@@ -74,9 +74,8 @@ export class ClientMessageQueue {
         emit(message.event, message.data);
         this.queue.shift();
         sentCount++;
-      } catch (error) {
+      } catch {
         // 如果发送失败，保留消息
-        console.error("消息发送失败:", error);
         break;
       }
     }

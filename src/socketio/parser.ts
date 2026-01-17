@@ -98,7 +98,7 @@ export function decodePacket(encoded: string): SocketIOPacket {
   if (i < encoded.length) {
     try {
       data = JSON.parse(encoded.slice(i));
-    } catch (e) {
+    } catch {
       // 如果解析失败，可能是二进制数据，暂时忽略
       data = undefined;
     }
