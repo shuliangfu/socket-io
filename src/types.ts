@@ -1,0 +1,202 @@
+/**
+ * @fileoverview Socket.IO 类型定义
+ * 定义 Socket.IO 服务器和客户端相关的类型和接口
+ */
+
+/**
+ * 加密配置
+ */
+export interface EncryptionConfig {
+  /** 加密密钥（Uint8Array 或字符串） */
+  key: Uint8Array | string;
+  /** 加密算法（默认：根据密钥长度自动选择） */
+  algorithm?: "aes-256-gcm" | "aes-128-gcm" | "aes-256-cbc" | "aes-128-cbc";
+  /** 是否启用加密（默认：true） */
+  enabled?: boolean;
+  /** 加密缓存大小（默认：1000） */
+  cacheSize?: number;
+  /** 缓存过期时间（毫秒，默认：60000） */
+  cacheTTL?: number;
+}
+
+/**
+ * Socket.IO 服务器配置选项
+ */
+export interface ServerOptions {
+  /** 主机地址（默认：0.0.0.0） */
+  host?: string;
+  /** 端口号 */
+  port?: number;
+  /** Socket.IO 路径（默认："/socket.io/"） */
+  path?: string;
+  /** 允许的传输方式（默认：["websocket", "polling"]） */
+  transports?: TransportType[];
+  /** 是否允许跨域（默认：true） */
+  allowCORS?: boolean;
+  /** CORS 来源（默认：*） */
+  cors?: {
+    origin?: string | string[] | ((origin: string) => boolean);
+    methods?: string[];
+    credentials?: boolean;
+  };
+  /** 心跳超时时间（毫秒，默认：20000） */
+  pingTimeout?: number;
+  /** 心跳间隔（毫秒，默认：25000） */
+  pingInterval?: number;
+  /** 最大连接数（默认：无限制） */
+  maxConnections?: number;
+  /** 连接超时时间（毫秒，默认：45000） */
+  connectTimeout?: number;
+  /** 是否启用压缩（默认：false） */
+  compression?: boolean;
+  /** 是否启用流式处理（默认：false，用于大数据包） */
+  streaming?: boolean;
+  /** 最大数据包大小（字节，默认：10MB） */
+  maxPacketSize?: number;
+  /** 是否启用硬件加速（默认：false） */
+  hardwareAcceleration?: boolean;
+  /** 是否启用 HTTP 长轮询（默认：true） */
+  allowPolling?: boolean;
+  /** 轮询超时时间（毫秒，默认：60000） */
+  pollingTimeout?: number;
+  /** 分布式适配器（可选，用于多服务器部署） */
+  adapter?: import("./adapters/types.ts").SocketIOAdapter;
+  /** 加密配置（可选，用于消息加密） */
+  encryption?: EncryptionConfig;
+}
+
+/**
+ * 传输方式类型
+ */
+export type TransportType = "websocket" | "polling";
+
+/**
+ * Engine.IO 消息类型
+ */
+export enum EnginePacketType {
+  OPEN = 0, // 握手
+  CLOSE = 1, // 关闭
+  PING = 2, // 心跳
+  PONG = 3, // 心跳响应
+  MESSAGE = 4, // 消息
+  UPGRADE = 5, // 升级传输
+  NOOP = 6, // 空操作
+}
+
+/**
+ * Socket.IO 消息类型
+ */
+export enum SocketIOPacketType {
+  CONNECT = 0, // 连接
+  DISCONNECT = 1, // 断开
+  EVENT = 2, // 事件
+  ACK = 3, // 确认
+  CONNECT_ERROR = 4, // 连接错误
+  BINARY_EVENT = 5, // 二进制事件
+  BINARY_ACK = 6, // 二进制确认
+}
+
+/**
+ * Engine.IO 数据包
+ */
+export interface EnginePacket {
+  /** 数据包类型 */
+  type: EnginePacketType;
+  /** 数据内容 */
+  data?: string | Uint8Array;
+}
+
+/**
+ * Socket.IO 数据包
+ */
+export interface SocketIOPacket {
+  /** 数据包类型 */
+  type: SocketIOPacketType;
+  /** 命名空间（可选） */
+  nsp?: string;
+  /** 数据内容 */
+  data?: any;
+  /** 确认 ID（可选） */
+  id?: number;
+  /** 附件数量（二进制数据） */
+  attachments?: number;
+}
+
+/**
+ * 握手信息
+ */
+export interface Handshake {
+  /** 查询参数 */
+  query: Record<string, string>;
+  /** 请求头 */
+  headers: Headers;
+  /** 客户端地址 */
+  address?: string;
+  /** URL */
+  url: string;
+  /** 传输方式 */
+  transport?: TransportType;
+}
+
+/**
+ * Socket 数据存储
+ */
+export interface SocketData {
+  [key: string]: unknown;
+}
+
+/**
+ * Socket 事件监听器
+ */
+export type SocketEventListener = (
+  data?: any,
+  callback?: (response: any) => void,
+) => void;
+
+/**
+ * 服务器事件监听器
+ */
+export type ServerEventListener = (socket: any) => void;
+
+/**
+ * 中间件函数
+ */
+export type Middleware = (
+  socket: any,
+  next: (error?: Error) => void,
+) => void | Promise<void>;
+
+/**
+ * 客户端配置选项
+ */
+export interface ClientOptions {
+  /** 服务器 URL */
+  url: string;
+  /** 命名空间（默认："/"） */
+  namespace?: string;
+  /** 查询参数 */
+  query?: Record<string, string>;
+  /** 是否自动连接（默认：true） */
+  autoConnect?: boolean;
+  /** 是否自动重连（默认：true） */
+  autoReconnect?: boolean;
+  /** 重连延迟（毫秒，默认：1000） */
+  reconnectionDelay?: number;
+  /** 最大重连延迟（毫秒，默认：5000） */
+  reconnectionDelayMax?: number;
+  /** 重连尝试次数（默认：Infinity） */
+  reconnectionAttempts?: number;
+  /** 允许的传输方式（默认：["websocket", "polling"]） */
+  transports?: TransportType[];
+  /** 是否强制使用轮询（默认：false） */
+  forceNew?: boolean;
+  /** 超时时间（毫秒，默认：20000） */
+  timeout?: number;
+  /** 加密配置（可选，用于消息加密） */
+  encryption?: EncryptionConfig;
+}
+
+/**
+ * 客户端事件监听器
+ */
+export type ClientEventListener = (data?: any) => void;

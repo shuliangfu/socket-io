@@ -1,0 +1,503 @@
+# @dreamer/socket.io
+
+> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和 Bun，提供完整的实时双向通信解决方案
+
+[![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
+
+## 🎯 功能特性
+
+`@dreamer/socket.io` 是一个完整的 Socket.IO 实现，提供了服务端和客户端的所有核心功能，支持实时双向通信、房间管理、命名空间隔离、消息加密等高级特性。适用于构建实时聊天应用、在线协作工具、实时推送服务、多人游戏、IoT 设备通信等场景。
+
+---
+
+## ✨ 特性
+
+### 核心功能
+
+- **跨运行时支持**：
+  - 原生支持 Deno 2.5 和 Bun 1.3.5，无需 Node.js
+  - 统一的 Socket.IO API，代码可在不同运行时无缝切换
+  - 基于 @dreamer/runtime-adapter 实现运行时抽象
+
+- **多种传输方式**：
+  - WebSocket 传输（首选，低延迟、高性能）
+  - HTTP 长轮询传输（自动降级，兼容性更好）
+  - 智能传输升级和降级机制
+  - 支持传输方式配置和限制
+
+- **完整的 Socket.IO 协议**：
+  - Engine.IO 协议完整实现（握手、心跳、数据包）
+  - Socket.IO 协议完整实现（连接、事件、确认）
+  - 支持二进制数据包传输
+  - 协议解析器缓存优化
+
+### 高级功能
+
+- **房间管理系统**：
+  - 动态房间创建和销毁
+  - Socket 加入/离开房间
+  - 房间内消息广播（支持排除发送者）
+  - 房间状态查询和管理
+  - 双向索引优化，O(1) 复杂度
+
+- **命名空间隔离**：
+  - 支持多个命名空间，隔离不同业务场景
+  - 每个命名空间独立的连接池和事件系统
+  - 动态命名空间创建和管理
+  - 支持默认命名空间（"/"）
+
+- **事件系统**：
+  - 连接生命周期事件（connect、disconnect、error）
+  - 自定义事件发送和监听
+  - 事件确认机制（acknowledgments）
+  - 支持事件监听器批量管理
+
+- **客户端功能**：
+  - 自动连接和手动连接控制
+  - 智能自动重连机制（可配置策略）
+  - 消息队列（连接前消息缓存）
+  - 连接状态管理和查询
+
+### 性能优化
+
+- **消息压缩**：
+  - gzip 和 deflate 压缩算法支持
+  - 自动压缩大消息，减少网络传输
+  - 压缩数据检测和自动解压
+
+- **流式处理**：
+  - 大数据包分块传输
+  - 流式解析器，支持增量处理
+  - 最大数据包大小限制
+
+- **硬件加速**：
+  - WebAssembly 和 SIMD 支持
+  - 批量哈希计算优化
+  - 批量数据操作优化
+
+- **缓存优化**：
+  - 消息序列化缓存（LRU）
+  - 解析器结果缓存
+  - 加密结果缓存
+
+### 安全特性
+
+- **消息加密**：
+  - AES-256-GCM 和 AES-128-GCM 加密算法
+  - 自动加密/解密 MESSAGE 类型数据包
+  - 密钥管理和密码派生
+  - 加密消息检测
+
+### 分布式支持
+
+- **适配器系统**：
+  - 内存适配器（默认，单服务器场景）
+  - Redis 适配器（多服务器部署，Pub/Sub 通信）
+  - MongoDB 适配器（多服务器部署，Change Streams 支持）
+  - 适配器接口统一，易于扩展
+
+- **跨服务器通信**：
+  - 房间同步（跨服务器房间管理）
+  - 消息广播（跨服务器消息传递）
+  - 服务器心跳和状态管理
+
+---
+
+## 🎨 设计原则
+
+**所有 @dreamer/* 库都遵循以下原则**：
+
+- **主包（@dreamer/xxx）**：用于服务端（兼容 Deno 和 Bun 运行时）
+- **客户端子包（@dreamer/xxx/client）**：用于客户端（浏览器环境）
+
+这样可以：
+- 明确区分服务端和客户端代码
+- 避免在客户端代码中引入服务端依赖
+- 提供更好的类型安全和代码提示
+- 支持更好的 tree-shaking
+
+---
+
+## 🎯 使用场景
+
+- **实时通信**：聊天应用、在线客服、实时通知
+- **推送服务**：消息推送、状态更新、数据同步
+- **在线协作**：协同编辑、实时白板、多人游戏
+- **监控和日志**：实时日志流、系统监控、性能指标
+- **IoT 应用**：设备控制、数据采集、远程监控
+
+---
+
+## 📦 安装
+
+### Deno
+
+```bash
+deno add jsr:@dreamer/socket.io
+```
+
+### Bun
+
+```bash
+bunx jsr add @dreamer/socket.io
+```
+
+---
+
+## 🌍 环境兼容性
+
+| 环境 | 版本要求 | 状态 |
+|------|---------|------|
+| **Deno** | 2.5 | ✅ 完全支持 |
+| **Bun** | 1.3.5 | ✅ 完全支持 |
+| **服务端** | - | ✅ 支持（兼容 Deno 和 Bun 运行时） |
+| **客户端** | - | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
+| **依赖** | - | 📦 @dreamer/runtime-adapter（用于跨运行时兼容） |
+
+---
+
+## 🚀 快速开始
+
+### 基础服务器
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+// 创建 Socket.IO 服务器
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+// 连接建立事件
+io.on("connection", (socket) => {
+  console.log("新连接建立:", socket.id);
+
+  // 监听自定义事件
+  socket.on("chat-message", (data) => {
+    console.log("收到聊天消息:", data);
+
+    // 发送事件
+    socket.emit("chat-response", {
+      status: "success",
+      message: "消息已收到",
+    });
+  });
+
+  // 断开连接事件
+  socket.on("disconnect", (reason) => {
+    console.log("连接断开:", socket.id, reason);
+  });
+});
+
+// 启动服务器
+await io.listen();
+console.log("Socket.IO 服务器运行在 http://localhost:3000");
+```
+
+### 房间管理
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+io.on("connection", (socket) => {
+  // 加入房间
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+    console.log(`用户 ${socket.id} 加入房间 ${roomId}`);
+
+    // 通知房间内其他用户
+    io.of("/").to(roomId).emit("user-joined", {
+      userId: socket.id,
+    });
+  });
+
+  // 离开房间
+  socket.on("leave-room", (roomId) => {
+    socket.leave(roomId);
+    console.log(`用户 ${socket.id} 离开房间 ${roomId}`);
+
+    // 通知房间内其他用户
+    io.of("/").to(roomId).emit("user-left", {
+      userId: socket.id,
+    });
+  });
+
+  // 房间内消息广播
+  socket.on("room-message", (data) => {
+    const { roomId, message } = data;
+    // 向房间内所有用户（除了发送者）广播消息
+    io.of("/").to(roomId).emit("room-message", {
+      userId: socket.id,
+      message: message,
+    });
+  });
+});
+
+await io.listen();
+```
+
+### 命名空间
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+});
+
+// 默认命名空间
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
+    socket.emit("response", { message: "来自默认命名空间" });
+  });
+});
+
+// 创建聊天命名空间
+const chatNamespace = io.of("/chat");
+chatNamespace.on("connection", (socket) => {
+  socket.on("chat-message", (data) => {
+    // 向聊天命名空间内所有用户广播
+    chatNamespace.emit("chat-message", {
+      userId: socket.id,
+      message: data.message,
+    });
+  });
+});
+
+// 创建游戏命名空间
+const gameNamespace = io.of("/game");
+gameNamespace.on("connection", (socket) => {
+  socket.on("game-action", (data) => {
+    if (data.roomId) {
+      gameNamespace.to(data.roomId).emit("game-action", {
+        userId: socket.id,
+        action: data.action,
+      });
+    }
+  });
+});
+
+await io.listen();
+```
+
+### 分布式部署（Redis 适配器）
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+import { RedisAdapter } from "jsr:@dreamer/socket.io/adapters";
+
+// 创建使用 Redis 适配器的 Socket.IO 服务器
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+  adapter: new RedisAdapter({
+    connection: {
+      host: "127.0.0.1",
+      port: 6379,
+    },
+    keyPrefix: "socket.io",
+    heartbeatInterval: 30,
+  }),
+});
+
+io.on("connection", (socket) => {
+  socket.on("chat-message", (data) => {
+    // 消息会通过 Redis 同步到其他服务器实例
+    socket.to("chat-room").emit("chat-message", data);
+  });
+});
+
+await io.listen();
+```
+
+**注意**：使用 Redis 适配器需要安装 `redis` 包：
+```bash
+deno add npm:redis
+```
+
+### 分布式部署（MongoDB 适配器）
+
+```typescript
+import { Server } from "jsr:@dreamer/socket.io";
+import { MongoDBAdapter } from "jsr:@dreamer/socket.io/adapters";
+
+// 创建使用 MongoDB 适配器的 Socket.IO 服务器
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+  adapter: new MongoDBAdapter({
+    connection: {
+      host: "127.0.0.1",
+      port: 27017,
+      database: "socket_io",
+      // 可选：如果使用副本集，启用 Change Streams（推荐）
+      // replicaSet: "rs0",
+    },
+    keyPrefix: "socket.io",
+    heartbeatInterval: 30,
+  }),
+});
+
+io.on("connection", (socket) => {
+  socket.on("chat-message", (data) => {
+    // 消息会通过 MongoDB 同步到其他服务器实例
+    socket.to("chat-room").emit("chat-message", data);
+  });
+});
+
+await io.listen();
+```
+
+**注意**：使用 MongoDB 适配器需要安装 `mongodb` 包：
+```bash
+deno add npm:mongodb
+```
+
+**MongoDB 适配器工作模式**：
+- **副本集模式**：使用 Change Streams，实时监听消息变更（推荐，性能更好）
+- **单节点模式**：使用轮询，每 500ms 检查一次新消息（自动降级，延迟较高）
+
+---
+
+## 📚 API 文档
+
+### Server
+
+Socket.IO 服务器类，管理所有连接和事件。
+
+**构造函数**：
+```typescript
+new Server(options?: ServerOptions)
+```
+
+**选项**：
+- `host?: string`: 主机地址（默认：0.0.0.0）
+- `port?: number`: 端口号（默认：3000）
+- `path?: string`: Socket.IO 路径（默认："/socket.io/"）
+- `transports?: TransportType[]`: 允许的传输方式（默认：["websocket", "polling"]）
+- `pingTimeout?: number`: 心跳超时（默认：20000ms）
+- `pingInterval?: number`: 心跳间隔（默认：25000ms）
+- `allowPolling?: boolean`: 是否允许 HTTP 长轮询（默认：true）
+- `pollingTimeout?: number`: 轮询超时（默认：60000ms）
+- `allowCORS?: boolean`: 是否允许跨域（默认：true）
+- `cors?: CorsOptions`: CORS 配置
+- `adapter?: SocketIOAdapter`: 分布式适配器（可选，默认使用内存适配器）
+
+**方法**：
+- `listen(host?: string, port?: number): Promise<void>`: 启动服务器
+- `close(): Promise<void>`: 关闭服务器
+- `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
+- `of(name: string): Namespace`: 创建或获取命名空间
+
+### Socket
+
+Socket.IO 连接类，表示一个客户端连接。
+
+**方法**：
+- `emit(event: string, data?: any, callback?: Function): void`: 发送事件
+- `on(event: string, listener: SocketEventListener): void`: 监听事件
+- `off(event: string, listener?: SocketEventListener): void`: 移除监听器
+- `join(room: string): void`: 加入房间
+- `leave(room: string): void`: 离开房间
+- `disconnect(reason?: string): void`: 断开连接
+
+**属性**：
+- `id: string`: Socket 唯一标识
+- `handshake: Handshake`: 握手信息
+- `data: SocketData`: 数据存储对象
+- `connected: boolean`: 连接状态
+
+### Namespace
+
+命名空间类，管理命名空间内的 Socket 连接。
+
+**方法**：
+- `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
+- `emit(event: string, data?: any): void`: 向所有 Socket 发送事件
+- `to(room: string): { emit: (event: string, data?: any) => void }`: 向房间发送事件
+- `getSocket(socketId: string): SocketIOSocket | undefined`: 获取 Socket
+- `getSockets(): Map<string, SocketIOSocket>`: 获取所有 Socket
+
+### 适配器
+
+#### RedisAdapter
+
+Redis 分布式适配器，用于多服务器部署。
+
+**选项**：
+- `connection?: RedisConnectionConfig`: Redis 连接配置
+- `client?: RedisClient`: Redis 客户端实例（可选）
+- `pubsubConnection?: RedisConnectionConfig`: Redis Pub/Sub 连接配置（可选）
+- `pubsubClient?: RedisPubSubClient`: Redis Pub/Sub 客户端实例（可选）
+- `keyPrefix?: string`: 键前缀（默认："socket.io"）
+- `heartbeatInterval?: number`: 服务器心跳间隔（秒，默认：30）
+
+#### MongoDBAdapter
+
+MongoDB 分布式适配器，用于多服务器部署。
+
+**选项**：
+- `connection: MongoDBConnectionConfig`: MongoDB 连接配置
+- `keyPrefix?: string`: 键前缀（默认："socket.io"）
+- `heartbeatInterval?: number`: 服务器心跳间隔（秒，默认：30）
+
+**MongoDB 连接配置**：
+- `url?: string`: MongoDB 连接 URL
+- `host?: string`: 主机地址（默认："127.0.0.1"）
+- `port?: number`: 端口（默认：27017）
+- `database: string`: 数据库名称
+- `username?: string`: 用户名（可选）
+- `password?: string`: 密码（可选）
+- `replicaSet?: string`: 副本集名称（可选，用于启用 Change Streams）
+- `directConnection?: boolean`: 是否直接连接（可选）
+
+---
+
+## 📝 备注
+
+- **服务端和客户端分离**：通过 `/client` 子路径明确区分服务端和客户端代码
+- **统一接口**：服务端和客户端使用相同的 API 接口，降低学习成本
+- **自动降级**：如果 WebSocket 不可用，自动降级到 HTTP 长轮询
+- **跨运行时支持**：原生支持 Deno 和 Bun 运行时，无需 Node.js
+- **类型安全**：完整的 TypeScript 类型支持
+
+---
+
+## 📊 测试报告
+
+详细的测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)
+
+**测试概览**:
+- ✅ 总测试数: 139
+- ✅ 通过率: 100%
+- ✅ 测试覆盖: 核心功能、边界情况、集成场景
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE.md](./LICENSE.md)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Dreamer Team**
+
+</div>
