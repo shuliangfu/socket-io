@@ -1,6 +1,6 @@
 {
   "name": "@dreamer/socket-io",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -34,8 +34,8 @@
     }
   },
   "imports": {
-    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@1.0.0-beta.17",
-    "@dreamer/test": "jsr:@dreamer/test@^1.0.0-beta.13",
+    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@^1.0.0-beta.22",
+    "@dreamer/test": "jsr:@dreamer/test@^1.0.0-beta.40",
     "@dreamer/crypto": "jsr:@dreamer/crypto@^1.0.0-beta.2",
     "mongodb": "npm:mongodb@^7.0.0",
     "redis": "npm:redis@^5.10.0"

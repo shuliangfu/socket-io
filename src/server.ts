@@ -251,7 +251,19 @@ export class Server {
   }
 
   /**
-   * 处理 HTTP 请求
+   * 处理单次 HTTP 请求（供挂载到现有 HTTP 服务器时使用）
+   *
+   * 当 Socket.IO 挂载到 dweb 等框架的同一端口时，由框架将路径前缀匹配的请求转发给本方法。
+   *
+   * @param request HTTP 请求
+   * @returns HTTP 响应
+   */
+  async handleIncomingRequest(request: Request): Promise<Response> {
+    return this.handleRequest(request);
+  }
+
+  /**
+   * 处理 HTTP 请求（内部实现）
    * @param request HTTP 请求
    * @returns HTTP 响应
    */

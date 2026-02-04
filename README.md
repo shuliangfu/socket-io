@@ -3,7 +3,7 @@
 > 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和 Bun，提供完整的实时双向通信解决方案
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
 [![Tests](https://img.shields.io/badge/tests-151%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
