@@ -20,6 +20,7 @@ import { PollingTransport } from "./engine/polling-transport.ts"
 import { EngineSocket } from "./engine/socket.ts"
 import { WebSocketTransport } from "./engine/websocket-transport.ts"
 import { HardwareAccelerator } from "./hardware-accel/accelerator.ts"
+import { decodePacket, encodePacket } from "./socketio/parser.ts"
 import { Namespace } from "./socketio/namespace.ts"
 import { SocketIOSocket } from "./socketio/socket.ts"
 import { StreamPacketProcessor } from "./streaming/stream-parser.ts"
@@ -521,7 +522,6 @@ export class Server {
     // 解析 Socket.IO 数据包以获取命名空间
     let nsp = "/";
     try {
-      const { decodePacket } = await import("./socketio/parser.ts");
       const packet = decodePacket(data);
       nsp = packet.nsp || "/";
     } catch {
@@ -964,7 +964,6 @@ export class Server {
           ) {
             if (message.packet) {
               // 如果有数据包，直接发送
-              const { encodePacket } = await import("./socketio/parser.ts");
               const encoded = encodePacket(message.packet);
               socket.sendRaw(encoded);
             } else if (message.event) {

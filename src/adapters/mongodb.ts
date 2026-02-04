@@ -13,6 +13,7 @@
  * 2. 单节点模式：使用轮询，每 500ms 检查一次新消息（自动降级，延迟较高）
  */
 
+import { MongoClient } from "mongodb";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
 
@@ -142,10 +143,6 @@ export class MongoDBAdapter implements SocketIOAdapter {
    */
   private async connectMongoDB(): Promise<void> {
     try {
-      // 动态导入 MongoDB 客户端
-      // 注意：mongodb 是可选依赖，需要用户安装 npm:mongodb
-      // @ts-ignore: mongodb 是可选依赖
-      const { MongoClient } = await import("mongodb");
       const url = this.buildConnectionUrl();
       this.internalClient = new MongoClient(url);
       await this.internalClient.connect();

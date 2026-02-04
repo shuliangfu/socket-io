@@ -3,6 +3,7 @@
  * 使用 Redis 实现分布式 Socket.IO 服务器，支持多服务器实例之间的消息广播
  */
 
+import { createClient } from "redis";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
 
@@ -140,12 +141,7 @@ export class RedisAdapter implements SocketIOAdapter {
    */
   private async connectRedis(): Promise<void> {
     if (this.connectionConfig && !this.internalClient) {
-      // 动态导入 Redis 客户端（根据运行时环境选择）
-      // 注意：redis 是可选依赖，需要用户安装 npm:redis
       try {
-        // 尝试使用 redis（推荐）
-        // @ts-ignore: redis 是可选依赖
-        const { createClient } = await import("redis");
         this.internalClient = createClient({
           url: this.connectionConfig.url ||
             `redis://${this.connectionConfig.host || "127.0.0.1"}:${
@@ -172,8 +168,6 @@ export class RedisAdapter implements SocketIOAdapter {
   private async connectPubSub(): Promise<void> {
     if (this.pubsubConnectionConfig && !this.internalPubsubClient) {
       try {
-        // @ts-ignore: redis 是可选依赖
-        const { createClient } = await import("redis");
         // 创建订阅客户端（用于接收消息）
         const subscribeClient = createClient({
           url: this.pubsubConnectionConfig.url ||
