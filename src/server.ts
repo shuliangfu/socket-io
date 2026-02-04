@@ -258,7 +258,7 @@ export class Server {
    * @param request HTTP 请求
    * @returns HTTP 响应
    */
-  async handleIncomingRequest(request: Request): Promise<Response> {
+  handleIncomingRequest(request: Request): Promise<Response> {
     return this.handleRequest(request);
   }
 
