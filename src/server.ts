@@ -3,32 +3,33 @@
  * 管理 Socket.IO 服务器、连接、命名空间和事件
  */
 
+import { createLogger, type Logger } from "@dreamer/logger"
 import {
-    serve,
-    type ServeHandle,
-    upgradeWebSocket,
-} from "@dreamer/runtime-adapter";
-import { MemoryAdapter } from "./adapters/memory.ts";
-import type { AdapterMessage, SocketIOAdapter } from "./adapters/types.ts";
-import { CompressionManager } from "./compression/compression-manager.ts";
-import { EncryptionManager } from "./encryption/encryption-manager.ts";
-import { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
-import { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts";
-import { PollingBatchHandler } from "./engine/polling-batch-handler.ts";
-import { PollingTransport } from "./engine/polling-transport.ts";
-import { EngineSocket } from "./engine/socket.ts";
-import { WebSocketTransport } from "./engine/websocket-transport.ts";
-import { HardwareAccelerator } from "./hardware-accel/accelerator.ts";
-import { Namespace } from "./socketio/namespace.ts";
-import { SocketIOSocket } from "./socketio/socket.ts";
-import { StreamPacketProcessor } from "./streaming/stream-parser.ts";
+  serve,
+  type ServeHandle,
+  upgradeWebSocket,
+} from "@dreamer/runtime-adapter"
+import { MemoryAdapter } from "./adapters/memory.ts"
+import type { AdapterMessage, SocketIOAdapter } from "./adapters/types.ts"
+import { CompressionManager } from "./compression/compression-manager.ts"
+import { EncryptionManager } from "./encryption/encryption-manager.ts"
+import { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts"
+import { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts"
+import { PollingBatchHandler } from "./engine/polling-batch-handler.ts"
+import { PollingTransport } from "./engine/polling-transport.ts"
+import { EngineSocket } from "./engine/socket.ts"
+import { WebSocketTransport } from "./engine/websocket-transport.ts"
+import { HardwareAccelerator } from "./hardware-accel/accelerator.ts"
+import { Namespace } from "./socketio/namespace.ts"
+import { SocketIOSocket } from "./socketio/socket.ts"
+import { StreamPacketProcessor } from "./streaming/stream-parser.ts"
 import {
-    EnginePacketType,
-    Handshake,
-    ServerEventListener,
-    ServerOptions,
-    TransportType,
-} from "./types.ts";
+  EnginePacketType,
+  Handshake,
+  ServerEventListener,
+  ServerOptions,
+  TransportType,
+} from "./types.ts"
 
 /**
  * Socket.IO 服务器
@@ -76,12 +77,25 @@ export class Server {
   private adapter: SocketIOAdapter;
   /** 服务器 ID */
   private serverId: string;
+  /** Logger 实例（统一日志输出） */
+  private readonly logger: Logger;
+
+  /**
+   * 调试日志：仅当 options.debug=true 时输出，使用 logger.debug（与 @dreamer/server 一致）
+   */
+  private debugLog(message: string): void {
+    if (this.options.debug === true) {
+      this.logger.debug(`[Socket.IO] ${message}`);
+    }
+  }
 
   /**
    * 创建 Socket.IO 服务器实例
    * @param options 服务器配置选项
    */
   constructor(options: ServerOptions = {}) {
+    this.logger = options.logger || createLogger();
+
     this.options = {
       path: options.path || "/socket.io/",
       pingTimeout: options.pingTimeout || 20000,
@@ -245,7 +259,7 @@ export class Server {
       },
     );
 
-    console.log(
+    this.logger.info(
       `Socket.IO 服务器运行在 http://${serverHost}:${serverPort}${this.options.path}`,
     );
   }
@@ -276,8 +290,13 @@ export class Server {
       path = this.options.path;
     }
 
+    this.debugLog(
+      `收到请求: ${request.method} ${path}${url.search ? `?${url.search}` : ""}`,
+    );
+
     // 检查是否是 Socket.IO 路径
     if (!path.startsWith(this.options.path)) {
+      this.debugLog("路径不匹配 pathPrefix，返回 404");
       return new Response("Not Found", { status: 404 });
     }
 
@@ -292,6 +311,7 @@ export class Server {
           "Access-Control-Allow-Credentials": "true",
         });
         if (request.method === "OPTIONS") {
+          this.debugLog("CORS 预检 OPTIONS，返回 200");
           return new Response(null, { status: 200, headers });
         }
       }
@@ -301,22 +321,35 @@ export class Server {
     const pathParts = path.slice(this.options.path.length).split("/");
     const transport = pathParts[0] as TransportType;
     const sid = pathParts[1];
+    this.debugLog(
+      `解析路径: transport=${transport ?? "(空)"}, sid=${sid ?? "(无)"}`,
+    );
 
     // 处理轮询传输
     if (transport === "polling") {
-      return await this.handlePolling(request, sid);
+      this.debugLog(`进入轮询处理 sid=${sid ?? "(无)"}`);
+      const res = await this.handlePolling(request, sid);
+      this.debugLog(`轮询返回: ${res.status}`);
+      return res;
     }
 
     // 处理 WebSocket 传输
     if (transport === "websocket") {
-      return this.handleWebSocket(request, sid);
+      this.debugLog(`进入 WebSocket 处理 sid=${sid ?? "(无)"}`);
+      const res = this.handleWebSocket(request, sid);
+      this.debugLog(`WebSocket 返回: ${res.status}`);
+      return res;
     }
 
     // 处理 Engine.IO 握手
     if (path.endsWith("/") || path === this.options.path) {
-      return this.handleHandshake(request);
+      this.debugLog("执行握手（生成 sid、创建轮询传输）");
+      const res = this.handleHandshake(request);
+      this.debugLog(`握手返回: ${res.status}`);
+      return res;
     }
 
+    this.debugLog("未匹配到处理分支（非握手/轮询/websocket），返回 404");
     return new Response("Not Found", { status: 404 });
   }
 

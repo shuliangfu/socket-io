@@ -1,3 +1,5 @@
+import type { Logger } from "@dreamer/logger"
+
 /**
  * @fileoverview Socket.IO 类型定义
  * 定义 Socket.IO 服务器和客户端相关的类型和接口
@@ -21,10 +23,13 @@ export interface EncryptionConfig {
 
 /**
  * Socket.IO 服务器配置选项
+ * @dreamer/logger Logger 实例（可选，用于统一日志输出；未提供时创建默认 logger）
  */
 export interface ServerOptions {
   /** 主机地址（默认：0.0.0.0） */
   host?: string;
+  /** Logger 实例（可选，用于统一日志输出；未提供时创建默认 logger） */
+  logger?: Logger;
   /** 端口号 */
   port?: number;
   /** Socket.IO 路径（默认："/socket.io/"） */
@@ -59,6 +64,8 @@ export interface ServerOptions {
   allowPolling?: boolean;
   /** 轮询超时时间（毫秒，默认：60000） */
   pollingTimeout?: number;
+  /** 是否启用调试日志（默认：false），开启后会在控制台输出请求路径、握手等调试信息 */
+  debug?: boolean;
   /** 分布式适配器（可选，用于多服务器部署） */
   adapter?: import("./adapters/types.ts").SocketIOAdapter;
   /** 加密配置（可选，用于消息加密） */

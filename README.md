@@ -429,6 +429,29 @@ await io.listen();
 deno add npm:redis
 ```
 
+### 调试与日志（debug / logger）
+
+创建 Server 时可传入 **debug** 和 **logger**，便于排查连接与握手问题：
+
+```typescript
+import { createLogger } from "@dreamer/logger";
+import { Server } from "jsr:@dreamer/socket.io";
+
+const logger = createLogger({ level: "debug", format: "text" });
+
+const io = new Server({
+  port: 3000,
+  path: "/socket.io/",
+  debug: true,   // 输出握手、轮询、WebSocket 等详细调试信息
+  logger,        // 所有 info/debug 通过 logger 输出，不使用 console
+});
+
+io.on("connection", (socket) => {
+  // ...
+});
+await io.listen();
+```
+
 ### 分布式部署（MongoDB 适配器）
 
 ```typescript
@@ -496,6 +519,8 @@ new Server(options?: ServerOptions)
 - `allowCORS?: boolean`: 是否允许跨域（默认：true）
 - `cors?: CorsOptions`: CORS 配置
 - `adapter?: SocketIOAdapter`: 分布式适配器（可选，默认使用内存适配器）
+- `debug?: boolean`: 是否启用调试日志（默认：false），开启后输出握手、轮询、WebSocket 等详细调试信息
+- `logger?: Logger`: 日志实例（未传时使用默认 logger），info/debug 等均通过 logger 输出，不使用 console
 
 **方法**：
 - `listen(host?: string, port?: number): Promise<void>`: 启动服务器
