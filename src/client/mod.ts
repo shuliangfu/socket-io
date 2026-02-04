@@ -555,6 +555,8 @@ export class Client {
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
+      // 触发 reconnecting 事件，便于 UI 显示「重连中…」
+      this.triggerEvent("reconnecting", this.reconnectAttempts);
       // 尝试下一个传输方式
       this.transportIndex = (this.transportIndex + 1) %
         this.options.transports.length;
