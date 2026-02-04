@@ -4,9 +4,9 @@
  */
 
 import {
-  serve,
-  type ServeHandle,
-  upgradeWebSocket,
+    serve,
+    type ServeHandle,
+    upgradeWebSocket,
 } from "@dreamer/runtime-adapter";
 import { MemoryAdapter } from "./adapters/memory.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./adapters/types.ts";
@@ -23,11 +23,11 @@ import { Namespace } from "./socketio/namespace.ts";
 import { SocketIOSocket } from "./socketio/socket.ts";
 import { StreamPacketProcessor } from "./streaming/stream-parser.ts";
 import {
-  EnginePacketType,
-  Handshake,
-  ServerEventListener,
-  ServerOptions,
-  TransportType,
+    EnginePacketType,
+    Handshake,
+    ServerEventListener,
+    ServerOptions,
+    TransportType,
 } from "./types.ts";
 
 /**
@@ -269,7 +269,12 @@ export class Server {
    */
   private async handleRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname;
+    // 规范化 path：接受 /socket.io 与 /socket.io/，避免因尾部斜杠导致 404
+    let path = url.pathname;
+    const pathBase = this.options.path.replace(/\/$/, "");
+    if (path === pathBase && !path.endsWith("/")) {
+      path = this.options.path;
+    }
 
     // 检查是否是 Socket.IO 路径
     if (!path.startsWith(this.options.path)) {
