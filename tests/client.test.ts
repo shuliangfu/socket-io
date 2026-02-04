@@ -331,6 +331,63 @@ describe("Socket.IO 客户端", () => {
     await delay(100);
   }, { sanitizeOps: false, sanitizeResources: false, timeout: 5000 });
 
+  it("应该支持自动重连 - 连接失败后持续重试直至成功", async () => {
+    const testPort = getAvailablePort();
+
+    // 先不启动服务器，客户端首次连接会失败
+    const client = new Client({
+      url: `http://localhost:${testPort}`,
+      namespace: "/",
+      autoConnect: true,
+      transports: ["polling"],
+      autoReconnect: true,
+      reconnectionDelay: 200, // 缩短重连延迟，加快测试
+      reconnectionDelayMax: 500,
+    });
+
+    let connectErrorCount = 0;
+    let reconnectingCount = 0;
+    let connected = false;
+
+    client.on("connect_error", () => {
+      connectErrorCount++;
+    });
+    client.on("reconnecting", () => {
+      reconnectingCount++;
+      // 第一次重连时启动服务器，此时客户端会在下次重试时连接成功
+    });
+    client.on("connect", () => {
+      connected = true;
+    });
+
+    // 等待首次连接失败（无服务器）
+    await delay(500);
+
+    // 启动服务器，供后续重连成功
+    const server = new Server({
+      port: testPort,
+      path: "/socket.io/",
+      pollingTimeout: 500,
+    });
+    await server.listen();
+    await delay(100);
+
+    // 等待自动重连成功（最多 5 秒）
+    const start = Date.now();
+    while (!connected && Date.now() - start < 5000) {
+      await delay(100);
+    }
+
+    expect(connectErrorCount).toBeGreaterThanOrEqual(1);
+    expect(reconnectingCount).toBeGreaterThanOrEqual(1);
+    expect(connected).toBe(true);
+
+    client.disconnect();
+    await delay(300);
+    await server.close();
+    await delay(200);
+  }, { sanitizeOps: false, sanitizeResources: false, timeout: 8000 });
+
   it("应该支持 removeAllListeners() - 移除所有监听器", () => {
     const client = new Client({
       url: "http://localhost:3000",

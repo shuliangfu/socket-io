@@ -228,9 +228,11 @@ export class Client {
 
       this.socket.on("connect_error", (error) => {
         this.smartReconnection.onError();
+        // 本次连接尝试结束，重置 reconnecting 以便能再次调度重连
+        this.reconnecting = false;
         this.triggerEvent("connect_error", error);
         // 如果启用自动重连，尝试重连
-        if (this.options.autoReconnect && !this.reconnecting) {
+        if (this.options.autoReconnect) {
           this.scheduleReconnect();
         }
       });
@@ -244,6 +246,8 @@ export class Client {
       this.setupCustomEventForwarding();
     } catch (error) {
       this.smartReconnection.onError();
+      // 本次连接尝试结束，重置 reconnecting 以便能再次调度重连
+      this.reconnecting = false;
       // 只在启用自动重连时输出错误日志，避免测试清理时的噪音
       if (this.options.autoReconnect) {
         console.error("连接失败:", error);
@@ -251,7 +255,7 @@ export class Client {
       this.triggerEvent("connect_error", error);
 
       // 如果启用自动重连，尝试重连
-      if (this.options.autoReconnect && !this.reconnecting) {
+      if (this.options.autoReconnect) {
         this.scheduleReconnect();
       }
     }
