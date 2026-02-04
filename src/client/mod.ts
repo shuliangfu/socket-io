@@ -197,9 +197,10 @@ export class Client {
       // 构建连接 URL
       const url = this.buildUrl();
 
-      // 重要：必须在 transport.connect() 之前创建 ClientSocket 并注册监听器，
-      // 否则服务端在连接建立时立即发送的 OPEN 包可能在监听器注册前到达而被丢弃，
-      // 导致客户端永远收不到 connect 事件（表现为一直显示「连接中」）
+      // WebSocket 连接建立后服务端会立即发送 OPEN 包，此时 ClientSocket 可能尚未创建。
+      // 传输层会缓冲该包，待 ClientSocket 注册监听器时再投递（见 ClientTransport.packetBuffer）
+      await this.transport.connect(url);
+
       this.socket = new ClientSocket(this.transport, this.options.namespace);
 
       // 监听 Socket 事件
@@ -241,9 +242,6 @@ export class Client {
 
       // 为所有已注册的自定义事件设置转发
       this.setupCustomEventForwarding();
-
-      // 在 Socket 监听器全部注册完成后，再发起连接（确保能收到服务端立即发送的 OPEN 包）
-      await this.transport.connect(url);
     } catch (error) {
       this.smartReconnection.onError();
       // 只在启用自动重连时输出错误日志，避免测试清理时的噪音

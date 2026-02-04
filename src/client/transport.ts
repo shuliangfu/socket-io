@@ -32,6 +32,11 @@ export abstract class ClientTransport {
   protected state: TransportState = TransportState.DISCONNECTED;
   /** 事件监听器 */
   protected listeners: Set<ClientTransportEventListener> = new Set();
+  /**
+   * 包缓冲：WebSocket 连接建立后服务端可能立即发送 OPEN 包，
+   * 若此时 ClientSocket 尚未注册监听器，包会丢失。先缓冲，待监听器注册时再投递。
+   */
+  private packetBuffer: EnginePacket[] = [];
 
   /**
    * 连接到服务器
@@ -57,6 +62,8 @@ export abstract class ClientTransport {
    */
   on(listener: ClientTransportEventListener): void {
     this.listeners.add(listener);
+    // 若有缓冲包（如 WebSocket 在监听器注册前收到的 OPEN），立即投递
+    this.flushPacketBuffer();
   }
 
   /**
@@ -68,15 +75,39 @@ export abstract class ClientTransport {
   }
 
   /**
-   * 触发数据包事件
+   * 触发数据包事件：有监听器则投递，否则缓冲
    * @param packet 数据包
    */
   protected emit(packet: EnginePacket): void {
-    for (const listener of this.listeners) {
-      try {
-        listener(packet);
-      } catch {
-        // 忽略监听器错误
+    if (this.listeners.size > 0) {
+      for (const listener of this.listeners) {
+        try {
+          listener(packet);
+        } catch {
+          // 忽略监听器错误
+        }
+      }
+    } else {
+      this.packetBuffer.push(packet);
+    }
+  }
+
+  /**
+   * 将缓冲包投递给所有监听器
+   */
+  private flushPacketBuffer(): void {
+    if (this.packetBuffer.length === 0 || this.listeners.size === 0) {
+      return;
+    }
+    const packets = [...this.packetBuffer];
+    this.packetBuffer = [];
+    for (const packet of packets) {
+      for (const listener of this.listeners) {
+        try {
+          listener(packet);
+        } catch {
+          // 忽略监听器错误
+        }
       }
     }
   }
