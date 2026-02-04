@@ -58,6 +58,14 @@ export class ClientWebSocketTransport extends ClientTransport {
 
         const handshake = await response.json();
         this.sid = handshake.sid;
+
+        // 关键：ClientSocket 依赖 transport 收到 OPEN 包才能完成连接。
+        // 服务端 WebSocket 升级时不会再次发送 OPEN（已通过 HTTP 返回），
+        // 因此必须将 HTTP 握手的 JSON 作为 OPEN 包 emit，供 ClientSocket 解析并发送 CONNECT。
+        this.emit({
+          type: EnginePacketType.OPEN,
+          data: JSON.stringify(handshake),
+        });
       } catch (error) {
         throw new Error(`WebSocket 握手失败: ${error instanceof Error ? error.message : String(error)}`);
       }
