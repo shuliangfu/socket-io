@@ -38,6 +38,8 @@ export class EngineSocket {
   private readonly pingInterval: number;
   /** 是否禁用独立心跳（由批量心跳管理器管理） */
   private heartbeatDisabled = false;
+  /** 关闭回调（用于 Server 清理 engineSockets、heartbeatManager 等，防止内存泄漏） */
+  private onCloseCallback: (() => void) | null = null;
 
   /**
    * 创建 Engine.IO Socket
@@ -45,17 +47,20 @@ export class EngineSocket {
    * @param handshake 握手信息
    * @param pingTimeout 心跳超时时间（毫秒）
    * @param pingInterval 心跳间隔（毫秒）
+   * @param onClose 关闭时回调（可选，用于 Server 清理资源）
    */
   constructor(
     id: string,
     handshake: Handshake,
     pingTimeout: number = 20000,
     pingInterval: number = 25000,
+    onClose?: () => void,
   ) {
     this.id = id;
     this.handshake = handshake;
     this.pingTimeout = pingTimeout;
     this.pingInterval = pingInterval;
+    this.onCloseCallback = onClose ?? null;
   }
 
   /**
@@ -209,8 +214,13 @@ export class EngineSocket {
 
   /**
    * 关闭 Socket
+   * 会调用 onClose 回调，供 Server 清理 engineSockets、heartbeatManager 等，防止内存泄漏
    */
   close(): void {
+    if (!this.connected && !this.transport) {
+      return; // 已关闭，避免重复调用
+    }
+
     if (this.pingTimer) {
       clearInterval(this.pingTimer);
       this.pingTimer = null;
@@ -227,6 +237,16 @@ export class EngineSocket {
     }
 
     this.connected = false;
+
+    // 通知 Server 清理资源（engineSockets、pollingTransports、heartbeatManager）
+    if (this.onCloseCallback) {
+      try {
+        this.onCloseCallback();
+      } catch (error) {
+        console.error("EngineSocket onClose 回调错误:", error);
+      }
+      this.onCloseCallback = null;
+    }
   }
 
   /**

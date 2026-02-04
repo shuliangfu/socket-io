@@ -370,12 +370,14 @@ export class Server {
       url: request.url,
     };
 
-    // 创建 Engine.IO Socket
+    // 创建 Engine.IO Socket，传入 onClose 回调以便客户端断开时清理资源（防止内存泄漏）
+    const sidForClose = sid;
     const engineSocket = new EngineSocket(
       sid,
       handshake,
       this.options.pingTimeout,
       this.options.pingInterval,
+      () => this.onEngineSocketClose(sidForClose),
     );
 
     // 获取动态轮询超时时间
@@ -507,6 +509,30 @@ export class Server {
     } catch (error) {
       console.error("WebSocket 升级失败:", error);
       return new Response("Internal Server Error", { status: 500 });
+    }
+  }
+
+  /**
+   * Engine.IO Socket 关闭时回调，清理 engineSockets、pollingTransports、heartbeatManager，
+   * 以及命名空间中的 Socket.IO Socket，防止客户端断开后资源泄漏
+   * @param sid Socket ID
+   */
+  private onEngineSocketClose(sid: string): void {
+    const engineSocket = this.engineSockets.get(sid);
+    if (engineSocket) {
+      this.engineSockets.delete(sid);
+      this.heartbeatManager.remove(engineSocket);
+    }
+    const pollingTransport = this.pollingTransports.get(sid);
+    if (pollingTransport) {
+      pollingTransport.close();
+      this.pollingTransports.delete(sid);
+    }
+    this.adaptivePollingTimeout.updateConnections(this.engineSockets.size);
+
+    // 从所有命名空间中移除对应的 Socket.IO Socket（客户端断开时可能尚未完成 Socket.IO 握手）
+    for (const namespace of this.namespaces.values()) {
+      namespace.removeSocket(sid);
     }
   }
 
