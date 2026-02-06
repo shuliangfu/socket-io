@@ -3,6 +3,7 @@
  * 定义分布式适配器接口，用于实现多服务器部署
  */
 
+import type { Logger } from "@dreamer/logger";
 import { SocketIOPacket } from "../types.ts";
 import { SocketIOSocket } from "../socketio/socket.ts";
 
@@ -138,4 +139,9 @@ export interface SocketIOAdapter {
    * 注销服务器
    */
   unregisterServer(): Promise<void> | void;
+
+  /**
+   * 设置 Logger（可选，由 Server 在初始化时调用，用于统一日志输出）
+   */
+  setLogger?(logger: Logger): void;
 }

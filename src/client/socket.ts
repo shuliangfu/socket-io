@@ -266,7 +266,11 @@ export class ClientSocket {
    * });
    * ```
    */
-  emit(event: string, data?: any, callback?: (response: any) => void): void {
+  emit(
+    event: string,
+    data?: unknown,
+    callback?: (response: unknown) => void,
+  ): void {
     if (!this.connected) {
       return;
     }
@@ -419,8 +423,8 @@ export class ClientSocket {
    */
   private triggerEvent(
     event: string,
-    data?: any,
-    callback?: (response: any) => void,
+    data?: unknown,
+    callback?: (response: unknown) => void,
   ): void {
     const listeners = this.listeners.get(event);
     if (listeners) {

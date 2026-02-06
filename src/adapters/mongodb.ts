@@ -114,6 +114,8 @@ export interface MongoDBAdapterOptions {
     key: string,
     params?: Record<string, string | number | boolean>,
   ) => string | undefined;
+  /** Logger 实例（可选，也可通过 setLogger 由 Server 注入） */
+  logger?: import("@dreamer/logger").Logger;
 }
 
 /**
@@ -141,15 +143,21 @@ export class MongoDBAdapter implements SocketIOAdapter {
     fallback: string,
     params?: Record<string, string | number | boolean>,
   ) => string;
+  private logger?: import("@dreamer/logger").Logger;
 
   constructor(options: MongoDBAdapterOptions) {
     this.connectionConfig = options.connection;
     this.heartbeatInterval = options.heartbeatInterval || 30;
     this.keyPrefix = options.keyPrefix || "socket.io";
+    this.logger = options.logger;
     this.tr = (key, fallback, params) => {
       const r = options.t?.(key, params);
       return (r != null && r !== key) ? r : fallback;
     };
+  }
+
+  setLogger(logger: import("@dreamer/logger").Logger): void {
+    this.logger = logger;
   }
 
   /**
@@ -289,7 +297,7 @@ export class MongoDBAdapter implements SocketIOAdapter {
       }
     } catch (error) {
       // 忽略索引创建错误（可能已存在）
-      console.warn(
+      (this.logger?.warn ?? console.warn)(
         this.tr(
           "log.socketioAdapter.mongoCreateIndexFailed",
           "创建索引失败（可能已存在）",
@@ -538,7 +546,7 @@ export class MongoDBAdapter implements SocketIOAdapter {
       return Promise.resolve();
     } catch (error) {
       // Change Streams 不可用，降级到轮询
-      console.warn(
+      (this.logger?.warn ?? console.warn)(
         this.tr(
           "log.socketioAdapter.mongoChangeStreamsUnavailable",
           "Change Streams 不可用，降级到轮询模式",
@@ -671,7 +679,7 @@ export class MongoDBAdapter implements SocketIOAdapter {
         }
       }
     } catch (error) {
-      console.error(
+      (this.logger?.error ?? console.error)(
         this.tr(
           "log.socketioAdapter.mongoPollingError",
           "轮询消息错误",

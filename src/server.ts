@@ -134,6 +134,8 @@ export class Server {
 
     // 创建或使用提供的适配器
     this.adapter = this.options.adapter || new MemoryAdapter();
+    // 将 logger 注入适配器（若适配器支持）
+    this.adapter.setLogger?.(this.logger);
 
     // 生成服务器 ID
     this.serverId = `server-${Date.now()}-${
@@ -154,6 +156,7 @@ export class Server {
     this.heartbeatManager = new BatchHeartbeatManager(
       this.options.pingInterval,
       this.options.pingTimeout,
+      this.logger,
     );
 
     // 创建动态轮询超时管理器
@@ -435,6 +438,7 @@ export class Server {
     const pollingTransport = new PollingTransport(
       pollingTimeout,
       this.encryptionManager,
+      this.logger,
     );
     engineSocket.setTransport(pollingTransport);
     this.pollingTransports.set(sid, pollingTransport);
@@ -541,6 +545,7 @@ export class Server {
         socket as WebSocket,
         this.compressionManager,
         this.encryptionManager,
+        this.logger,
       );
       engineSocket.setTransport(wsTransport);
 
@@ -714,7 +719,7 @@ export class Server {
    * server.emit("system-notification", { message: "系统维护中" });
    * ```
    */
-  emit(event: string, data?: any): void {
+  emit(event: string, data?: unknown): void {
     const defaultNamespace = this.namespaces.get("/");
     if (defaultNamespace) {
       defaultNamespace.emit(event, data);

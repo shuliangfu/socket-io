@@ -186,18 +186,23 @@ export class StreamPacketProcessor {
   private parser: StreamParser;
   /** 数据包回调 */
   private onPacket: (packet: EnginePacket) => void;
+  /** 错误回调（可选），解析失败时调用 */
+  private onError?: (error: unknown) => void;
 
   /**
    * 创建流式数据包处理器
    * @param onPacket 数据包回调函数
    * @param maxPacketSize 最大数据包大小（字节，默认：10MB）
+   * @param onError 错误回调（可选），解析失败时调用，未提供时使用 console.error
    */
   constructor(
     onPacket: (packet: EnginePacket) => void,
     maxPacketSize: number = 10 * 1024 * 1024,
+    onError?: (error: unknown) => void,
   ) {
     this.parser = new StreamParser(maxPacketSize);
     this.onPacket = onPacket;
+    this.onError = onError;
   }
 
   /**
@@ -211,7 +216,7 @@ export class StreamPacketProcessor {
         this.onPacket(packet);
       }
     } catch (error) {
-      console.error("流式解析错误:", error);
+      (this.onError ?? console.error)("流式解析错误:", error);
       this.parser.resetParser();
     }
   }

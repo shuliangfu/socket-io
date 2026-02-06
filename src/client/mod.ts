@@ -319,7 +319,11 @@ export class Client {
    * });
    * ```
    */
-  emit(event: string, data?: any, callback?: (response: any) => void): void {
+  emit(
+    event: string,
+    data?: unknown,
+    callback?: (response: unknown) => void,
+  ): void {
     if (this.socket?.connected) {
       this.socket.emit(event, data, callback);
     } else {

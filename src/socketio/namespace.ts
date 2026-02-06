@@ -660,7 +660,7 @@ export class Namespace {
    * namespace.emit("system-notification", { message: "系统维护中" });
    * ```
    */
-  emit(event: string, data?: any): void {
+  emit(event: string, data?: unknown): void {
     if (this.sockets.size === 0) {
       return;
     }
