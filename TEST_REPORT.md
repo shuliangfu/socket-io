@@ -1,449 +1,359 @@
-# @dreamer/socket.io 测试报告
-
-## 测试概述
-
-本报告详细记录了 `@dreamer/socket.io` 库的测试结果。该库提供了完整的 Socket.IO 服务器和客户端实现，支持实时双向通信、房间管理、命名空间、消息加密等功能，并兼容 Deno 和 Bun 运行时。
-
-## 测试环境
-
-- **Deno 版本**: 2.5+
-- **Bun 版本**: 1.3.5+
-- **测试框架**: @dreamer/test
-- **测试日期**: 2026-02-06
-
-## 📊 测试概览
-
-| 指标 | 数值 |
-|------|------|
-| **总测试数** | 189 |
-| **通过测试** | 189 |
-| **失败测试** | 0 |
-| **通过率** | 100% |
-| **总耗时** | Deno ~41s / Bun ~38s |
-
-## ✅ 测试结果总结
-
-所有测试均通过，无失败用例。测试覆盖了以下核心功能：
-
-- ✅ Engine.IO 协议解析
-- ✅ Socket.IO 协议解析
-- ✅ 服务器功能
-- ✅ 客户端功能（含自动重连）
-- ✅ 集成测试
-- ✅ 命名空间
-- ✅ 房间管理
-- ✅ 传输层（WebSocket 和 Polling）
-- ✅ 适配器（内存、Redis、MongoDB，含泛型）
-- ✅ 压缩功能
-- ✅ 加密功能
-- ✅ 硬件加速
-- ✅ 流式处理
-- ✅ 优化功能（含国际化、内存与定时器复核、API 优化）
-- ✅ 日志与国际化
-
-## 📋 详细测试结果
-
-### 1. 适配器测试 (12 个测试)
-
-**文件**: `tests/adapters.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 内存适配器 > 应该创建内存适配器 | ✅ 通过 | 0ms |
-| 内存适配器 > 应该初始化适配器 | ✅ 通过 | 0ms |
-| 内存适配器 > 应该添加 Socket 到房间 | ✅ 通过 | 0ms |
-| 内存适配器 > 应该从房间移除 Socket | ✅ 通过 | 0ms |
-| 内存适配器 > 应该从所有房间移除 Socket | ✅ 通过 | 0ms |
-| 内存适配器 > 应该获取房间内的 Socket | ✅ 通过 | 0ms |
-| 内存适配器 > 应该获取 Socket 所在的房间 | ✅ 通过 | 0ms |
-| 内存适配器 > 应该关闭适配器 | ✅ 通过 | 0ms |
-| 内存适配器 > 应该获取服务器 ID | ✅ 通过 | 0ms |
-| Redis 适配器 > 应该创建 Redis 适配器（需要配置） | ✅ 通过 | 0ms |
-| Redis 适配器 > 应该使用提供的 Redis 客户端 | ✅ 通过 | 0ms |
-| MongoDB 适配器 > 应该创建 MongoDB 适配器（需要配置） | ✅ 通过 | 0ms |
-
-**测试覆盖**:
-- 内存适配器的所有核心功能
-- Redis 适配器创建和配置
-- MongoDB 适配器创建和配置
-
-### 2. 客户端测试 (11 个测试)
-
-**文件**: `tests/client.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建客户端实例 | ✅ 通过 | 0ms |
-| 应该使用默认配置 | ✅ 通过 | 0ms |
-| 应该连接到服务器 | ✅ 通过 | ~870ms |
-| 应该发送和接收事件 | ✅ 通过 | ~1s |
-| 应该支持事件确认 | ✅ 通过 | ~1s |
-| 应该断开连接 | ✅ 通过 | ~100ms |
-| 应该检查连接状态 | ✅ 通过 | 0ms |
-| 应该获取 Socket ID | ✅ 通过 | ~560ms |
-| 应该支持 once() - 只监听一次事件 | ✅ 通过 | ~1s |
-| 应该支持自动重连 - 连接失败后持续重试直至成功 | ✅ 通过 | ~1s |
-| 应该支持 removeAllListeners() - 移除所有监听器 | ✅ 通过 | 0ms |
-
-**测试覆盖**:
-- 客户端创建和配置
-- 服务器连接
-- 事件发送和接收
-- 事件确认机制
-- 连接状态管理
-- 一次性事件监听（once）
-- 自动重连机制
-- 移除所有事件监听器（removeAllListeners）
-
-### 3. 压缩测试 (9 个测试)
-
-**文件**: `tests/compression.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建压缩管理器 | ✅ 通过 | 0ms |
-| 应该压缩字符串数据 | ✅ 通过 | 0ms |
-| 应该解压压缩的数据 | ✅ 通过 | 0ms |
-| 应该不压缩小于最小大小的数据 | ✅ 通过 | 0ms |
-| 应该检测压缩数据 | ✅ 通过 | 0ms |
-| 应该支持 deflate 算法 | ✅ 通过 | 0ms |
-| 应该处理压缩失败的情况 | ✅ 通过 | 0ms |
-| 应该处理解压失败的情况 | ✅ 通过 | 0ms |
-| 应该启用和禁用压缩 | ✅ 通过 | 0ms |
-
-**测试覆盖**:
-- gzip 和 deflate 压缩算法
-- 压缩/解压功能
-- 压缩数据检测
-- 错误处理
-- 压缩开关控制
-
-### 4. 加密测试 (7 个测试)
-
-**文件**: `tests/encryption.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建加密管理器 | ✅ 通过 | 0ms |
-| 应该加密和解密消息 | ✅ 通过 | 2ms |
-| 应该检测加密消息 | ✅ 通过 | 0ms |
-| 服务端和客户端应该能够加密通信 | ✅ 通过 | 1s |
-| 未加密的客户端应该无法与加密服务器通信 | ✅ 通过 | 8s |
-| 应该支持不同的加密算法 | ✅ 通过 | 1ms |
-| 应该从密码生成密钥 | ✅ 通过 | 1ms |
-
-**测试覆盖**:
-- AES-256-GCM 和 AES-128-GCM 加密算法
-- 消息加密/解密
-- 加密消息检测
-- 服务端和客户端加密通信
-- 密钥生成和管理
-- 安全验证（未加密客户端无法连接）
-
-### 5. Engine.IO 协议解析器测试 (25 个测试)
-
-**文件**: `tests/engine-parser.test.ts`
-
-| 测试类别 | 测试数 | 状态 |
-|---------|--------|------|
-| encodePacket | 7 | ✅ 全部通过 |
-| decodePacket | 8 | ✅ 全部通过 |
-| encodePayload | 3 | ✅ 全部通过 |
-| decodePayload | 5 | ✅ 全部通过 |
-| 编码解码往返 | 2 | ✅ 全部通过 |
-
-**测试覆盖**:
-- OPEN、CLOSE、PING、PONG、MESSAGE 数据包编码
-- 二进制数据包编码
-- 数据包解码
-- 空数据包处理
-- 多数据包编码/解码
-- 错误处理（无效长度、超出范围）
-- 编码解码往返一致性
-
-### 6. 硬件加速测试 (9 个测试)
-
-**文件**: `tests/hardware-accel.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建硬件加速器 | ✅ 通过 | 2ms |
-| 应该批量计算哈希 | ✅ 通过 | 1ms |
-| 应该批量复制数据 | ✅ 通过 | 0ms |
-| 应该批量比较数据 | ✅ 通过 | 0ms |
-| 应该批量编码数据 | ✅ 通过 | 0ms |
-| 应该检查 WebAssembly 可用性 | ✅ 通过 | 0ms |
-| 应该检查 SIMD 可用性 | ✅ 通过 | 0ms |
-| 应该处理空数据 | ✅ 通过 | 0ms |
-| 应该处理大数据 | ✅ 通过 | 8ms |
-
-**测试覆盖**:
-- WebAssembly 和 SIMD 支持检测
-- 批量哈希计算
-- 批量数据操作（复制、比较、编码）
-- 边界情况处理（空数据、大数据）
-
-### 7. 集成测试 (4 个测试)
-
-**文件**: `tests/integration.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该建立服务器和客户端连接 | ✅ 通过 | 594ms |
-| 应该实现双向通信 | ✅ 通过 | 2s |
-| 应该支持房间功能 | ✅ 通过 | 564ms |
-| 应该支持命名空间 | ✅ 通过 | 865ms |
-
-**测试覆盖**:
-- 端到端连接建立
-- 双向消息通信
-- 房间功能集成
-- 命名空间功能集成
-
-### 8. 命名空间测试 (10 个测试)
-
-**文件**: `tests/namespace.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建命名空间 | ✅ 通过 | 1ms |
-| 应该添加 Socket 连接 | ✅ 通过 | 104ms |
-| 应该移除 Socket 连接 | ✅ 通过 | 102ms |
-| 应该支持房间管理 | ✅ 通过 | 103ms |
-| 应该向房间广播消息 | ✅ 通过 | 205ms |
-| 应该向所有 Socket 广播消息 | ✅ 通过 | 212ms |
-| 应该支持 socketsJoin() - 批量加入房间 | ✅ 通过 | 204ms |
-| 应该支持 socketsLeave() - 批量离开房间 | ✅ 通过 | 205ms |
-| 应该支持 fetchSockets() - 获取 Socket 实例集 | ✅ 通过 | 106ms |
-| 应该支持 disconnectSockets() - 批量断开连接 | ✅ 通过 | 208ms |
-
-**测试覆盖**:
-- 命名空间创建和管理
-- Socket 连接管理
-- 房间管理
-- 消息广播（房间内、全局）
-- 批量房间操作（socketsJoin, socketsLeave）
-- Socket 查询（fetchSockets）
-- 批量断开连接（disconnectSockets）
-
-### 9. 优化功能测试 (8 个测试)
-
-**文件**: `tests/optimization.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该启用消息序列化缓存 | ✅ 通过 | ~310ms |
-| 应该启用批量心跳管理器 | ✅ 通过 | ~310ms |
-| 应该启用压缩支持 | ✅ 通过 | ~305ms |
-| 应该启用流式处理 | ✅ 通过 | ~305ms |
-| 应该启用硬件加速 | ✅ 通过 | ~305ms |
-| 应该同时启用所有优化 | ✅ 通过 | ~305ms |
-| 应该使用内存适配器（默认） | ✅ 通过 | ~205ms |
-| 应该使用动态轮询超时 | ✅ 通过 | ~305ms |
-
-**测试覆盖**:
-- 消息序列化缓存优化
-- 批量心跳管理优化
-- 压缩功能集成
-- 流式处理集成
-- 硬件加速集成
-- 多优化功能组合
-- 适配器集成
-- 动态轮询超时优化
-
-### 9.1 优化新增测试 (26 个测试)
-
-**文件**: `tests/optimization-new.test.ts`
-
-| 测试类别 | 测试数 | 状态 |
-|---------|--------|------|
-| 2.2 错误信息国际化 (tr) | 6 | ✅ 全部通过 |
-| 4.1 适配器泛型 | 2 | ✅ 全部通过 |
-| 6.2 内存与定时器 | 6 | ✅ 全部通过 |
-| API 优化 | 5 | ✅ 全部通过 |
-| 连接断开后资源清理集成 | 1 | ✅ 全部通过 |
-
-**测试覆盖**:
-- StreamPacketProcessor、CompressionManager、MessageQueue、Server.tr 国际化
-- MongoDBAdapter、RedisAdapter 泛型支持
-- BatchHeartbeatManager、PollingBatchHandler、AdaptivePollingTimeout、PollingTransport、Server.close 资源清理
-- hasPendingPackets、addToRoom/removeFromRoom、processPacket、getServer、WebSocketBatchSender.setTr
-- 客户端断开后 Server.close 正常完成
-
-### 9.2 日志与国际化测试 (10 个测试)
-
-**文件**: `tests/logger-debug-i18n.test.ts`
-
-**测试覆盖**:
-- 日志调试与国际化（tr）相关功能
-
-### 10. 服务器测试 (11 个测试)
-
-**文件**: `tests/server.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建服务器实例 | ✅ 通过 | 0ms |
-| 应该使用默认配置 | ✅ 通过 | 0ms |
-| 应该启动服务器 | ✅ 通过 | 310ms |
-| 应该处理连接事件 | ✅ 通过 | 609ms |
-| 应该支持命名空间 | ✅ 通过 | 0ms |
-| 应该返回相同的命名空间实例 | ✅ 通过 | 0ms |
-| 应该关闭服务器 | ✅ 通过 | 307ms |
-| 应该支持 emit() - 向默认命名空间发送事件 | ✅ 通过 | 303ms |
-| 应该支持 to() - 向默认命名空间的房间发送事件 | ✅ 通过 | 303ms |
-| 应该支持 in() - to() 的别名 | ✅ 通过 | 305ms |
-| 应该支持 except() - 排除房间或 Socket ID | ✅ 通过 | 305ms |
-
-**测试覆盖**:
-- 服务器创建和配置
-- 服务器启动和关闭
-- 连接事件处理
-- 命名空间管理
-- 服务器级事件发送（emit, to, in, except）
-
-### 11. Socket 测试 (10 个测试)
-
-**文件**: `tests/socket.test.ts`
-
-| 测试用例 | 状态 | 耗时 |
-|---------|------|------|
-| 应该创建 Socket 实例 | ✅ 通过 | 0ms |
-| 应该发送事件 | ✅ 通过 | 0ms |
-| 应该监听事件 | ✅ 通过 | 0ms |
-| 应该移除事件监听器 | ✅ 通过 | 0ms |
-| 应该支持房间管理 | ✅ 通过 | 0ms |
-| 应该支持 once() 方法 - 只监听一次事件 | ✅ 通过 | 0ms |
-| 应该支持 removeAllListeners() 方法 | ✅ 通过 | 0ms |
-| 应该支持事件确认 | ✅ 通过 | 102ms |
-| 应该断开连接 | ✅ 通过 | 0ms |
-| 应该处理断开连接数据包 | ✅ 通过 | 0ms |
-
-**测试覆盖**:
-- Socket 创建和管理
-- 事件发送和监听
-- 事件监听器管理
-- 房间管理
-- 一次性事件监听（once）
-- 移除所有事件监听器（removeAllListeners）
-- 事件确认机制
-- 断开连接处理
-
-### 12. Socket.IO 协议解析器测试 (18 个测试)
-
-**文件**: `tests/socketio-parser.test.ts`
-
-| 测试类别 | 测试数 | 状态 |
-|---------|--------|------|
-| encodePacket | 7 | ✅ 全部通过 |
-| decodePacket | 8 | ✅ 全部通过 |
-| 编码解码往返 | 3 | ✅ 全部通过 |
-
-**测试覆盖**:
-- CONNECT、DISCONNECT、EVENT、ACK、CONNECT_ERROR 数据包编码
-- 命名空间支持
-- 确认 ID 支持
-- 数据包解码
-- 空数据包处理
-- 编码解码往返一致性
-
-### 13. 流式处理测试 (10 个测试)
-
-**文件**: `tests/streaming.test.ts`
-
-| 测试类别 | 测试数 | 状态 |
-|---------|--------|------|
-| 流式解析器 | 6 | ✅ 全部通过 |
-| 流式数据包处理器 | 4 | ✅ 全部通过 |
-
-**测试覆盖**:
-- 流式解析器创建和配置
-- 完整数据包解析
-- 分块数据包处理
-- 大数据包处理
-- 最大大小限制
-- 错误处理
-- 处理器重置
-
-### 14. 传输层测试 (8 个测试)
-
-**文件**: `tests/transport.test.ts`
-
-| 测试类别 | 测试数 | 状态 |
-|---------|--------|------|
-| ClientPollingTransport | 4 | ✅ 全部通过 |
-| ClientWebSocketTransport | 4 | ✅ 全部通过 |
-
-**测试覆盖**:
-- 轮询传输创建和配置
-- WebSocket 传输创建和配置
-- 事件监听和移除
-- 连接状态检查
-
-## 🔍 测试覆盖范围
-
-### 核心功能覆盖
-
-- ✅ **协议层**: Engine.IO 和 Socket.IO 协议完整实现
-- ✅ **传输层**: WebSocket 和 HTTP 长轮询支持
-- ✅ **服务器端**: 连接管理、事件处理、房间、命名空间
-- ✅ **客户端端**: 连接、自动重连、事件、确认
-- ✅ **适配器**: 内存、Redis、MongoDB 分布式支持（含泛型）
-- ✅ **安全**: 消息加密/解密（AES-256-GCM）
-- ✅ **性能**: 压缩、流式处理、硬件加速、缓存优化
-- ✅ **国际化**: 错误信息 tr 翻译、日志 i18n
-
-### 边界情况覆盖
-
-- ✅ 空数据包处理
-- ✅ 无效数据包处理
-- ✅ 大数据包处理
-- ✅ 连接断开处理
-- ✅ 错误情况处理
-- ✅ 压缩/解压失败处理
-- ✅ 加密/解密失败处理
-
-### 集成测试覆盖
-
-- ✅ 服务器和客户端端到端通信
-- ✅ 双向消息传递
-- ✅ 房间功能集成
-- ✅ 命名空间功能集成
-- ✅ 加密通信集成
-- ✅ 优化功能集成
-- ✅ 连接断开后资源清理（Server.close）
-
-## 📈 性能指标
-
-- **平均测试执行时间**: ~217ms/测试（Deno）
-- **最长测试时间**: 8秒（加密安全验证测试）
-- **最短测试时间**: 0ms（单元测试）
-- **总测试时间**: Deno ~41s / Bun ~38s
-
-## 🎯 测试质量评估
-
-### 优点
-
-1. **全面覆盖**: 覆盖所有核心功能和边界情况
-2. **稳定性**: 所有测试稳定通过，无随机失败
-3. **性能**: 测试执行速度快，大部分测试在毫秒级完成
-4. **集成测试**: 包含端到端集成测试，验证实际使用场景
-5. **安全测试**: 包含加密通信和安全验证测试
-
-### 建议
-
-1. **性能测试**: 可以添加更多性能基准测试
-2. **压力测试**: 可以添加高并发场景测试
-3. **兼容性测试**: 可以添加更多运行时环境测试
-
-## ✅ 结论
-
-所有 189 个测试用例全部通过，测试覆盖率达到 100%。Socket.IO 库的核心功能、边界情况、集成场景均已得到充分验证。新增的 API 方法（once、removeAllListeners、socketsJoin、socketsLeave、fetchSockets、disconnectSockets、Server 级别的 emit/to/in/except）均已通过测试。优化相关功能（错误信息国际化 tr、适配器泛型、内存与定时器复核、API 优化）已通过新增测试覆盖。代码质量高，功能稳定可靠，可以安全地用于生产环境。
+# @dreamer/socket.io Test Report
+
+## Test Overview
+
+This report documents the test results for the `@dreamer/socket.io` library. The library provides a full Socket.IO server and client implementation with real-time bidirectional communication, room management, namespaces, message encryption, and compatibility with Deno and Bun runtimes.
+
+## Test Environment
+
+- **Deno**: 2.5+
+- **Bun**: 1.3.5+
+- **Test Framework**: @dreamer/test
+- **Test Date**: 2026-02-06
+
+## 📊 Test Summary
+
+| Metric | Value |
+| ------ | ----- |
+| **Total Tests** | 189 |
+| **Passed** | 189 |
+| **Failed** | 0 |
+| **Pass Rate** | 100% |
+| **Execution Time** | Deno ~41s / Bun ~38s |
+
+## ✅ Test Result Summary
+
+All tests passed with no failures. Coverage includes:
+
+- ✅ Engine.IO protocol parsing
+- ✅ Socket.IO protocol parsing
+- ✅ Server functionality
+- ✅ Client functionality (including auto-reconnect)
+- ✅ Integration tests
+- ✅ Namespaces
+- ✅ Room management
+- ✅ Transport layer (WebSocket and Polling)
+- ✅ Adapters (memory, Redis, MongoDB, including generics)
+- ✅ Compression
+- ✅ Encryption
+- ✅ Hardware acceleration
+- ✅ Streaming
+- ✅ Optimization (i18n, memory/timer review, API optimization)
+- ✅ Logging and i18n
+
+## 📋 Detailed Test Results
+
+### 1. Adapter Tests (12 tests)
+
+**File**: `tests/adapters.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Memory adapter > Should create memory adapter | ✅ Pass | 0ms |
+| Memory adapter > Should init adapter | ✅ Pass | 0ms |
+| Memory adapter > Should add Socket to room | ✅ Pass | 0ms |
+| Memory adapter > Should remove Socket from room | ✅ Pass | 0ms |
+| Memory adapter > Should remove Socket from all rooms | ✅ Pass | 0ms |
+| Memory adapter > Should get Sockets in room | ✅ Pass | 0ms |
+| Memory adapter > Should get rooms for Socket | ✅ Pass | 0ms |
+| Memory adapter > Should close adapter | ✅ Pass | 0ms |
+| Memory adapter > Should get server ID | ✅ Pass | 0ms |
+| Redis adapter > Should create Redis adapter (requires config) | ✅ Pass | 0ms |
+| Redis adapter > Should use provided Redis client | ✅ Pass | 0ms |
+| MongoDB adapter > Should create MongoDB adapter (requires config) | ✅ Pass | 0ms |
+
+**Coverage**: Memory adapter core features, Redis/MongoDB adapter creation and config.
+
+### 2. Client Tests (11 tests)
+
+**File**: `tests/client.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create client instance | ✅ Pass | 0ms |
+| Should use default config | ✅ Pass | 0ms |
+| Should connect to server | ✅ Pass | ~870ms |
+| Should send and receive events | ✅ Pass | ~1s |
+| Should support event acknowledgment | ✅ Pass | ~1s |
+| Should disconnect | ✅ Pass | ~100ms |
+| Should check connection status | ✅ Pass | 0ms |
+| Should get Socket ID | ✅ Pass | ~560ms |
+| Should support once() - listen once | ✅ Pass | ~1s |
+| Should support auto-reconnect - retry until success | ✅ Pass | ~1s |
+| Should support removeAllListeners() | ✅ Pass | 0ms |
+
+**Coverage**: Client creation, server connection, event send/receive, acknowledgment, connection status, once(), auto-reconnect, removeAllListeners().
+
+### 3. Compression Tests (9 tests)
+
+**File**: `tests/compression.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create compression manager | ✅ Pass | 0ms |
+| Should compress string data | ✅ Pass | 0ms |
+| Should decompress compressed data | ✅ Pass | 0ms |
+| Should not compress data below min size | ✅ Pass | 0ms |
+| Should detect compressed data | ✅ Pass | 0ms |
+| Should support deflate algorithm | ✅ Pass | 0ms |
+| Should handle compression failure | ✅ Pass | 0ms |
+| Should handle decompression failure | ✅ Pass | 0ms |
+| Should enable and disable compression | ✅ Pass | 0ms |
+
+**Coverage**: gzip/deflate, compress/decompress, detection, error handling, toggle.
+
+### 4. Encryption Tests (7 tests)
+
+**File**: `tests/encryption.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create encryption manager | ✅ Pass | 0ms |
+| Should encrypt and decrypt messages | ✅ Pass | 2ms |
+| Should detect encrypted messages | ✅ Pass | 0ms |
+| Server and client should communicate encrypted | ✅ Pass | 1s |
+| Unencrypted client should not connect to encrypted server | ✅ Pass | 8s |
+| Should support different encryption algorithms | ✅ Pass | 1ms |
+| Should generate key from password | ✅ Pass | 1ms |
+
+**Coverage**: AES-256-GCM, AES-128-GCM, encrypt/decrypt, detection, server-client encrypted communication, key generation, security validation.
+
+### 5. Engine.IO Parser Tests (25 tests)
+
+**File**: `tests/engine-parser.test.ts`
+
+| Category | Count | Status |
+| -------- | ----- | ------ |
+| encodePacket | 7 | ✅ All pass |
+| decodePacket | 8 | ✅ All pass |
+| encodePayload | 3 | ✅ All pass |
+| decodePayload | 5 | ✅ All pass |
+| Encode/decode roundtrip | 2 | ✅ All pass |
+
+**Coverage**: OPEN, CLOSE, PING, PONG, MESSAGE encoding, binary packets, decoding, empty packets, multi-packet encode/decode, error handling, roundtrip consistency.
+
+### 6. Hardware Acceleration Tests (9 tests)
+
+**File**: `tests/hardware-accel.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create hardware accelerator | ✅ Pass | 2ms |
+| Should batch compute hash | ✅ Pass | 1ms |
+| Should batch copy data | ✅ Pass | 0ms |
+| Should batch compare data | ✅ Pass | 0ms |
+| Should batch encode data | ✅ Pass | 0ms |
+| Should check WebAssembly availability | ✅ Pass | 0ms |
+| Should check SIMD availability | ✅ Pass | 0ms |
+| Should handle empty data | ✅ Pass | 0ms |
+| Should handle large data | ✅ Pass | 8ms |
+
+**Coverage**: WebAssembly/SIMD detection, batch hash, batch copy/compare/encode, edge cases.
+
+### 7. Integration Tests (4 tests)
+
+**File**: `tests/integration.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should establish server-client connection | ✅ Pass | 594ms |
+| Should implement bidirectional communication | ✅ Pass | 2s |
+| Should support rooms | ✅ Pass | 564ms |
+| Should support namespaces | ✅ Pass | 865ms |
+
+**Coverage**: End-to-end connection, bidirectional messaging, rooms, namespaces.
+
+### 8. Namespace Tests (10 tests)
+
+**File**: `tests/namespace.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create namespace | ✅ Pass | 1ms |
+| Should add Socket connection | ✅ Pass | 104ms |
+| Should remove Socket connection | ✅ Pass | 102ms |
+| Should support room management | ✅ Pass | 103ms |
+| Should broadcast to room | ✅ Pass | 205ms |
+| Should broadcast to all Sockets | ✅ Pass | 212ms |
+| Should support socketsJoin() - batch join | ✅ Pass | 204ms |
+| Should support socketsLeave() - batch leave | ✅ Pass | 205ms |
+| Should support fetchSockets() - get Socket set | ✅ Pass | 106ms |
+| Should support disconnectSockets() - batch disconnect | ✅ Pass | 208ms |
+
+**Coverage**: Namespace creation, Socket management, rooms, broadcast, socketsJoin, socketsLeave, fetchSockets, disconnectSockets.
+
+### 9. Optimization Tests (8 tests)
+
+**File**: `tests/optimization.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should enable message serialization cache | ✅ Pass | ~310ms |
+| Should enable batch heartbeat manager | ✅ Pass | ~310ms |
+| Should enable compression | ✅ Pass | ~305ms |
+| Should enable streaming | ✅ Pass | ~305ms |
+| Should enable hardware acceleration | ✅ Pass | ~305ms |
+| Should enable all optimizations | ✅ Pass | ~305ms |
+| Should use memory adapter (default) | ✅ Pass | ~205ms |
+| Should use dynamic polling timeout | ✅ Pass | ~305ms |
+
+**Coverage**: Serialization cache, batch heartbeat, compression, streaming, hardware acceleration, combined optimizations, adapter, dynamic polling timeout.
+
+### 9.1 Optimization New Tests (26 tests)
+
+**File**: `tests/optimization-new.test.ts`
+
+| Category | Count | Status |
+| -------- | ----- | ------ |
+| 2.2 Error message i18n (tr) | 6 | ✅ All pass |
+| 4.1 Adapter generics | 2 | ✅ All pass |
+| 6.2 Memory and timers | 6 | ✅ All pass |
+| API optimization | 5 | ✅ All pass |
+| Resource cleanup after disconnect | 1 | ✅ All pass |
+
+**Coverage**: StreamPacketProcessor, CompressionManager, MessageQueue, Server.tr i18n; MongoDBAdapter, RedisAdapter generics; BatchHeartbeatManager, PollingBatchHandler, AdaptivePollingTimeout, PollingTransport, Server.close cleanup; hasPendingPackets, addToRoom/removeFromRoom, processPacket, getServer, WebSocketBatchSender.setTr; Server.close after client disconnect.
+
+### 9.2 Logging and i18n Tests (10 tests)
+
+**File**: `tests/logger-debug-i18n.test.ts`
+
+**Coverage**: Logging debug and i18n (tr) functionality.
+
+### 10. Server Tests (11 tests)
+
+**File**: `tests/server.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create server instance | ✅ Pass | 0ms |
+| Should use default config | ✅ Pass | 0ms |
+| Should start server | ✅ Pass | 310ms |
+| Should handle connection events | ✅ Pass | 609ms |
+| Should support namespaces | ✅ Pass | 0ms |
+| Should return same namespace instance | ✅ Pass | 0ms |
+| Should close server | ✅ Pass | 307ms |
+| Should support emit() - to default namespace | ✅ Pass | 303ms |
+| Should support to() - to room in default namespace | ✅ Pass | 303ms |
+| Should support in() - alias for to() | ✅ Pass | 305ms |
+| Should support except() - exclude room or Socket ID | ✅ Pass | 305ms |
+
+**Coverage**: Server creation, start/close, connection events, namespaces, emit, to, in, except.
+
+### 11. Socket Tests (10 tests)
+
+**File**: `tests/socket.test.ts`
+
+| Test Case | Status | Time |
+| --------- | ------ | ---- |
+| Should create Socket instance | ✅ Pass | 0ms |
+| Should send events | ✅ Pass | 0ms |
+| Should listen to events | ✅ Pass | 0ms |
+| Should remove event listeners | ✅ Pass | 0ms |
+| Should support room management | ✅ Pass | 0ms |
+| Should support once() | ✅ Pass | 0ms |
+| Should support removeAllListeners() | ✅ Pass | 0ms |
+| Should support event acknowledgment | ✅ Pass | 102ms |
+| Should disconnect | ✅ Pass | 0ms |
+| Should handle disconnect packet | ✅ Pass | 0ms |
+
+**Coverage**: Socket creation, event send/listen, listener management, rooms, once, removeAllListeners, acknowledgment, disconnect.
+
+### 12. Socket.IO Parser Tests (18 tests)
+
+**File**: `tests/socketio-parser.test.ts`
+
+| Category | Count | Status |
+| -------- | ----- | ------ |
+| encodePacket | 7 | ✅ All pass |
+| decodePacket | 8 | ✅ All pass |
+| Encode/decode roundtrip | 3 | ✅ All pass |
+
+**Coverage**: CONNECT, DISCONNECT, EVENT, ACK, CONNECT_ERROR encoding, namespace, ack ID, decoding, empty packets, roundtrip consistency.
+
+### 13. Streaming Tests (10 tests)
+
+**File**: `tests/streaming.test.ts`
+
+| Category | Count | Status |
+| -------- | ----- | ------ |
+| Stream parser | 6 | ✅ All pass |
+| Stream packet processor | 4 | ✅ All pass |
+
+**Coverage**: Parser creation, full packet parsing, chunked packets, large packets, max size limit, error handling, processor reset.
+
+### 14. Transport Tests (8 tests)
+
+**File**: `tests/transport.test.ts`
+
+| Category | Count | Status |
+| -------- | ----- | ------ |
+| ClientPollingTransport | 4 | ✅ All pass |
+| ClientWebSocketTransport | 4 | ✅ All pass |
+
+**Coverage**: Polling/WebSocket transport creation and config, event listen/remove, connection status.
+
+## 🔍 Test Coverage
+
+### Core Features
+
+- ✅ **Protocol**: Engine.IO and Socket.IO full implementation
+- ✅ **Transport**: WebSocket and HTTP long polling
+- ✅ **Server**: Connection management, events, rooms, namespaces
+- ✅ **Client**: Connection, auto-reconnect, events, acknowledgment
+- ✅ **Adapters**: Memory, Redis, MongoDB (including generics)
+- ✅ **Security**: Message encryption/decryption (AES-256-GCM)
+- ✅ **Performance**: Compression, streaming, hardware acceleration, cache
+- ✅ **i18n**: Error message tr translation, log i18n
+
+### Edge Cases
+
+- ✅ Empty packet handling
+- ✅ Invalid packet handling
+- ✅ Large packet handling
+- ✅ Disconnect handling
+- ✅ Error handling
+- ✅ Compression/decompression failure
+- ✅ Encryption/decryption failure
+
+### Integration
+
+- ✅ End-to-end server-client communication
+- ✅ Bidirectional messaging
+- ✅ Room integration
+- ✅ Namespace integration
+- ✅ Encrypted communication
+- ✅ Optimization integration
+- ✅ Resource cleanup after disconnect (Server.close)
+
+## 📈 Performance
+
+- **Average test time**: ~217ms/test (Deno)
+- **Longest test**: 8s (encryption security validation)
+- **Shortest test**: 0ms (unit tests)
+- **Total time**: Deno ~41s / Bun ~38s
+
+## 🎯 Quality Assessment
+
+### Strengths
+
+1. **Comprehensive**: All core features and edge cases covered
+2. **Stable**: All tests pass consistently
+3. **Fast**: Most tests complete in milliseconds
+4. **Integration**: End-to-end tests for real scenarios
+5. **Security**: Encrypted communication and validation tests
+
+### Suggestions
+
+1. **Performance**: Add more performance benchmarks
+2. **Stress**: Add high-concurrency tests
+3. **Compatibility**: Add more runtime environment tests
+
+## ✅ Conclusion
+
+All 189 tests pass (100% pass rate). Core functionality, edge cases, and integration scenarios are well covered. New API methods (once, removeAllListeners, socketsJoin, socketsLeave, fetchSockets, disconnectSockets, Server emit/to/in/except) are tested. Optimization features (error i18n tr, adapter generics, memory/timer review, API optimization) are covered. Code quality is high, functionality is stable, and the library is suitable for production use.
 
 ---
 
-**测试报告生成时间**: 2026-02-06
-**测试执行环境**:
-- Deno 2.5+
-- Bun 1.3.5+
-**测试框架**: @dreamer/test
+**Report generated**: 2026-02-06  
+**Environment**: Deno 2.5+, Bun 1.3.5+  
+**Framework**: @dreamer/test
