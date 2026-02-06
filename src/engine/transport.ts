@@ -23,13 +23,28 @@ export abstract class Transport {
   protected sendQueue: EnginePacket[] = [];
   /** Logger 实例（可选） */
   protected logger?: Logger;
+  /** 翻译函数（可选，用于 i18n） */
+  protected tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建传输层
    * @param logger Logger 实例（可选），用于统一日志输出
+   * @param tr 翻译函数（可选），用于错误信息国际化
    */
-  constructor(logger?: Logger) {
+  constructor(
+    logger?: Logger,
+    tr?: (
+      key: string,
+      fallback: string,
+      params?: Record<string, string | number | boolean>,
+    ) => string,
+  ) {
     this.logger = logger;
+    this.tr = tr;
   }
 
   /**
@@ -40,8 +55,17 @@ export abstract class Transport {
 
   /**
    * 关闭传输
+   * 子类实现时应在最后调用 clearListeners() 以释放监听器引用，防止内存泄漏
    */
   abstract close(): void;
+
+  /**
+   * 清空事件监听器
+   * 在 close() 时调用，释放监听器引用，防止循环引用导致的内存泄漏
+   */
+  protected clearListeners(): void {
+    this.listeners.clear();
+  }
 
   /**
    * 添加事件监听器
@@ -68,7 +92,11 @@ export abstract class Transport {
       try {
         listener(packet);
       } catch (error) {
-        (this.logger?.error ?? console.error)("传输层事件监听器错误:", error);
+        const msg = this.tr?.(
+          "log.socketioEngine.transportListenerError",
+          "传输层事件监听器错误",
+        ) ?? "传输层事件监听器错误";
+        (this.logger?.error ?? console.error)(msg, error);
       }
     }
   }

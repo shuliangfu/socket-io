@@ -22,6 +22,12 @@ export interface CompressionManagerOptions {
   level?: number;
   /** Logger 实例（可选），用于统一日志输出 */
   logger?: Logger;
+  /** 翻译函数（可选），用于错误信息国际化 */
+  tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 }
 
 /**
@@ -37,6 +43,12 @@ export class CompressionManager {
   private enabled: boolean;
   /** Logger 实例（可选） */
   private readonly logger?: Logger;
+  /** 翻译函数（可选，用于 i18n） */
+  private readonly tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建压缩管理器
@@ -47,12 +59,15 @@ export class CompressionManager {
     this.minSize = options.minSize || 1024;
     this.enabled = true;
     this.logger = options.logger;
+    this.tr = options.tr;
 
     // 检查是否支持压缩 API
     if (typeof CompressionStream === "undefined") {
-      (this.logger?.warn ?? console.warn)(
+      const msg = this.tr?.(
+        "log.socketio.compressionUnavailable",
         "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+",
-      );
+      ) ?? "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+";
+      (this.logger?.warn ?? console.warn)(msg);
       this.enabled = false;
     }
   }
@@ -133,7 +148,11 @@ export class CompressionManager {
 
       return result;
     } catch (error) {
-      (this.logger?.error ?? console.error)("压缩失败:", error);
+      const msg = this.tr?.(
+        "log.socketio.compressionFailed",
+        "压缩失败",
+      ) ?? "压缩失败";
+      (this.logger?.error ?? console.error)(msg, error);
       // 压缩失败，返回原始数据
       if (typeof data === "string") {
         return new TextEncoder().encode(data);

@@ -53,9 +53,9 @@
 
 **建议**：在 Server 构造时创建 `onError` 回调，将 logger 或错误处理函数传递给子模块。
 
-### 2.2 错误信息国际化 ⏳ 未完成
+### 2.2 错误信息国际化 ✅ 已完成
 
-部分错误信息已使用 `this.tr()`，但 `console.error` 处未使用。统一后便于 i18n。
+Transport、Socket、CompressionManager、MessageQueue、WebSocketBatchSender、StreamPacketProcessor 等已接入 tr()。
 
 ---
 
@@ -102,12 +102,9 @@ removeFromRoom(room: string): void {
 
 ## 四、适配器类型优化
 
-### 4.1 MongoDB / Redis 适配器 ⏳ 未完成
+### 4.1 MongoDB / Redis 适配器 ✅ 已完成
 
-当前为兼容不同版本的 mongodb/redis 客户端，接口使用 `any`。可考虑：
-
-- 使用泛型：`MongoDBAdapter<TClient extends MongoDBClient>`
-- 或定义最小接口（Minimal Interface），只声明实际用到的方法签名
+已使用泛型：`MongoDBAdapter<TClient extends MongoDBClient>`、`RedisAdapter<TClient, TPubSubClient>`，并替换 `as any` 为类型断言。
 
 ### 4.2 适配器错误处理 ✅ 已完成
 
@@ -136,10 +133,13 @@ SocketIOSocket 的 `reset()` 用于对象池，但 `id`、`nsp`、`handshake` �
 - 将 `id`、`nsp`、`handshake` 改为可写（非 readonly），仅在对象池场景下由内部写入 ← **已采用**
 - 或使用 `Object.defineProperty` 在 reset 时重新定义
 
-### 6.2 内存与定时器 ⏳ 未复核
+### 6.2 内存与定时器 ✅ 已复核
 
-- `BatchHeartbeatManager`、`AdaptivePollingTimeout`、`PollingBatchHandler` 在 `close()` 时是否完全清理，建议复核
-- `pollTimeout` 在 `PollingTransport.close()` 中已 `clearTimeout`，实现正确
+- **BatchHeartbeatManager.destroy()**：清除 pingTimer、pendingTimeouts、sockets
+- **PollingBatchHandler.clear()**：清除 batchTimer、pendingPolls，并对未完成请求返回 CLOSE 包
+- **AdaptivePollingTimeout**：无定时器，新增 `reset()` 重置连接数
+- **PollingTransport.close()**：清除 pollTimeout、currentPollResolve、pendingPackets
+- **Transport**：新增 `clearListeners()`，PollingTransport/WebSocketTransport 在 close 时调用，释放监听器引用
 
 ---
 
@@ -148,10 +148,13 @@ SocketIOSocket 的 `reset()` 用于对象池，但 `id`、`nsp`、`handshake` �
 | 场景 | 当前 | 建议 | 状态 |
 |------|------|------|------|
 | logger/debug/t | ✅ 已有 | 保持 | ✅ |
-| 连接断开后的资源清理 | 部分 | 增加断言：engineSockets、pollingTransports 已清空 | ⏳ |
-| 批量处理器超时 | 未覆盖 | 增加批量处理、超时分支测试 | ⏳ |
+| 连接断开后的资源清理 | ✅ 已覆盖 | 增加断言：engineSockets、pollingTransports 已清空 | ✅ optimization-new.test.ts |
+| 批量处理器超时 | ✅ 已覆盖 | 增加批量处理、超时分支测试 | ✅ PollingBatchHandler.clear() |
 | 适配器错误路径 | 部分 | Redis/MongoDB 连接失败、消息发布失败等 | ⏳ |
 | 压缩/加密失败 | 部分 | 增加异常路径测试 | ⏳ |
+| 2.2 tr 国际化 | ✅ 已覆盖 | StreamPacketProcessor、CompressionManager、MessageQueue、Server.tr | ✅ |
+| 4.1 适配器泛型 | ✅ 已覆盖 | MongoDBAdapter、RedisAdapter 泛型创建 | ✅ |
+| 6.2 内存与定时器 | ✅ 已覆盖 | BatchHeartbeatManager、PollingBatchHandler、AdaptivePollingTimeout、Server.close | ✅ |
 
 ---
 
@@ -193,6 +196,6 @@ socket-io 功能完整、测试充分（163 个用例），主要优化方向为
 | 类型细化（1.2） | 5/5 | 0 |
 | Logger（2.1） | 13/13 | 0 |
 | API 设计（三） | 3/3 | 0 |
-| 适配器（四） | 1/2 | 泛型（4.1） |
+| 适配器（四） | 2/2 | 0 |
 | websocket 对齐（五） | 5/5 | 0 |
-| 性能（6.1） | 1/1 | 0 |
+| 性能（6.1-6.2） | 2/2 | 0 |

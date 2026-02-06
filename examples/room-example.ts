@@ -16,7 +16,8 @@ io.on("connection", (socket) => {
   console.log("新连接建立:", socket.id);
 
   // 监听加入房间事件
-  socket.on("join-room", (roomId: string) => {
+  socket.on<string>("join-room", (roomId) => {
+    if (!roomId) return;
     socket.join(roomId);
     console.log(`Socket ${socket.id} 加入房间: ${roomId}`);
 
@@ -35,7 +36,8 @@ io.on("connection", (socket) => {
   });
 
   // 监听离开房间事件
-  socket.on("leave-room", (roomId: string) => {
+  socket.on<string>("leave-room", (roomId) => {
+    if (!roomId) return;
     socket.leave(roomId);
     console.log(`Socket ${socket.id} 离开房间: ${roomId}`);
 
@@ -48,7 +50,8 @@ io.on("connection", (socket) => {
   });
 
   // 监听房间消息
-  socket.on("room-message", (data: { roomId: string; message: string }) => {
+  socket.on<{ roomId: string; message: string }>("room-message", (data) => {
+    if (!data) return;
     console.log(`房间 ${data.roomId} 收到消息:`, data.message);
 
     // 向房间内所有用户（包括发送者）广播消息
@@ -60,7 +63,8 @@ io.on("connection", (socket) => {
   });
 
   // 监听私聊消息（只发送给特定用户）
-  socket.on("private-message", (data: { to: string; message: string }) => {
+  socket.on<{ to: string; message: string }>("private-message", (data) => {
+    if (!data) return;
     console.log(`私聊消息: ${socket.id} -> ${data.to}`);
 
     // 只发送给目标用户

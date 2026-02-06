@@ -26,6 +26,12 @@ export class WebSocketBatchSender {
   private readonly batchSize: number;
   /** Logger 实例（可选） */
   private logger?: Logger;
+  /** 翻译函数（可选，用于错误信息国际化） */
+  private tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建 WebSocket 批量发送器
@@ -42,6 +48,19 @@ export class WebSocketBatchSender {
    */
   setLogger(logger: Logger): void {
     this.logger = logger;
+  }
+
+  /**
+   * 设置翻译函数（用于静态实例，由 WebSocketTransport 在首次创建时调用）
+   */
+  setTr(
+    tr: (
+      key: string,
+      fallback: string,
+      params?: Record<string, string | number | boolean>,
+    ) => string,
+  ): void {
+    this.tr = tr;
   }
 
   /**
@@ -76,7 +95,11 @@ export class WebSocketBatchSender {
             task.ws.send(task.data);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            (this.logger?.error ?? console.error)("WebSocket 发送错误:", error);
+            const msg = this.tr?.(
+              "log.socketioEngine.wsSendError",
+              "WebSocket 发送错误",
+            ) ?? "WebSocket 发送错误";
+            (this.logger?.error ?? console.error)(msg, error);
           }
         }
       }

@@ -188,21 +188,34 @@ export class StreamPacketProcessor {
   private onPacket: (packet: EnginePacket) => void;
   /** 错误回调（可选），解析失败时调用 */
   private onError?: (error: unknown) => void;
+  /** 翻译函数（可选，用于错误信息国际化） */
+  private readonly tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建流式数据包处理器
    * @param onPacket 数据包回调函数
    * @param maxPacketSize 最大数据包大小（字节，默认：10MB）
    * @param onError 错误回调（可选），解析失败时调用，未提供时使用 console.error
+   * @param tr 翻译函数（可选），用于错误信息国际化
    */
   constructor(
     onPacket: (packet: EnginePacket) => void,
     maxPacketSize: number = 10 * 1024 * 1024,
     onError?: (error: unknown) => void,
+    tr?: (
+      key: string,
+      fallback: string,
+      params?: Record<string, string | number | boolean>,
+    ) => string,
   ) {
     this.parser = new StreamParser(maxPacketSize);
     this.onPacket = onPacket;
     this.onError = onError;
+    this.tr = tr;
   }
 
   /**
@@ -216,7 +229,11 @@ export class StreamPacketProcessor {
         this.onPacket(packet);
       }
     } catch (error) {
-      (this.onError ?? console.error)("流式解析错误:", error);
+      const msg = this.tr?.(
+        "log.socketio.streamParseError",
+        "流式解析错误",
+      ) ?? "流式解析错误";
+      (this.onError ?? ((e: unknown) => console.error(msg, e)))(error);
       this.parser.resetParser();
     }
   }

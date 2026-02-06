@@ -3,6 +3,7 @@
  * 使用 Redis 实现分布式 Socket.IO 服务器，支持多服务器实例之间的消息广播
  */
 
+import type { Logger } from "@dreamer/logger";
 import { createClient } from "redis";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
@@ -98,32 +99,43 @@ export interface RedisAdapterOptions {
     params?: Record<string, string | number | boolean>,
   ) => string | undefined;
   /** Logger 实例（可选，也可通过 setLogger 由 Server 注入） */
-  logger?: import("@dreamer/logger").Logger;
+  logger?: Logger;
 }
 
 /**
  * Redis 分布式适配器
  * 使用 Redis 实现分布式 Socket.IO 服务器
+ *
+ * 支持泛型以兼容不同版本的 redis 客户端。
+ * 默认使用 createClient 创建的客户端，也可传入实现 RedisClient/RedisPubSubClient 接口的自定义客户端。
+ *
+ * @typeParam TClient - Redis 客户端类型，需实现 RedisClient 接口
+ * @typeParam TPubSubClient - Redis Pub/Sub 客户端类型，需实现 RedisPubSubClient 接口
  */
-export class RedisAdapter implements SocketIOAdapter {
+export class RedisAdapter<
+  TClient extends RedisClient = RedisClient,
+  TPubSubClient extends RedisPubSubClient = RedisPubSubClient,
+> implements SocketIOAdapter {
   private serverId: string = "";
   private sockets: Map<string, SocketIOSocket> = new Map();
-  private client: RedisClient | null = null;
-  private pubsubClient: RedisPubSubClient | null = null;
+  private client: TClient | null = null;
+  private pubsubClient: TPubSubClient | null = null;
   private keyPrefix: string;
   private connectionConfig?: RedisConnectionConfig;
   private pubsubConnectionConfig?: RedisConnectionConfig;
   private heartbeatInterval: number;
   private heartbeatTimer?: number;
   private messageCallback?: (message: AdapterMessage, serverId: string) => void;
-  private internalClient: any = null;
-  private internalPubsubClient: any = null;
+  /** 内部 Redis 客户端实例（由 createClient 或用户传入） */
+  private internalClient: TClient | null = null;
+  /** 内部 Redis Pub/Sub 客户端实例 */
+  private internalPubsubClient: TPubSubClient | null = null;
   private tr: (
     key: string,
     fallback: string,
     params?: Record<string, string | number | boolean>,
   ) => string;
-  private logger?: import("@dreamer/logger").Logger;
+  private logger?: Logger;
 
   constructor(options: RedisAdapterOptions = {}) {
     this.keyPrefix = options.keyPrefix || "socket.io";
@@ -137,7 +149,7 @@ export class RedisAdapter implements SocketIOAdapter {
     if (options.connection) {
       this.connectionConfig = options.connection;
     } else if (options.client) {
-      this.client = options.client;
+      this.client = options.client as TClient;
     } else {
       throw new Error(
         this.tr(
@@ -150,14 +162,14 @@ export class RedisAdapter implements SocketIOAdapter {
     if (options.pubsubConnection) {
       this.pubsubConnectionConfig = options.pubsubConnection;
     } else if (options.pubsubClient) {
-      this.pubsubClient = options.pubsubClient;
+      this.pubsubClient = options.pubsubClient as TPubSubClient;
     } else {
       // 如果没有提供 Pub/Sub 配置，使用与 client 相同的配置
       this.pubsubConnectionConfig = this.connectionConfig;
     }
   }
 
-  setLogger(logger: import("@dreamer/logger").Logger): void {
+  setLogger(logger: Logger): void {
     this.logger = logger;
   }
 
@@ -167,7 +179,7 @@ export class RedisAdapter implements SocketIOAdapter {
   private async connectRedis(): Promise<void> {
     if (this.connectionConfig && !this.internalClient) {
       try {
-        this.internalClient = createClient({
+        const redisClient = createClient({
           url: this.connectionConfig.url ||
             `redis://${this.connectionConfig.host || "127.0.0.1"}:${
               this.connectionConfig.port || 6379
@@ -175,8 +187,9 @@ export class RedisAdapter implements SocketIOAdapter {
           password: this.connectionConfig.password,
           database: this.connectionConfig.db || 0,
         });
-        await this.internalClient.connect();
-        this.client = this.internalClient as any;
+        await redisClient.connect();
+        this.internalClient = redisClient as unknown as TClient;
+        this.client = this.internalClient;
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         throw new Error(
@@ -223,11 +236,11 @@ export class RedisAdapter implements SocketIOAdapter {
           await publishClient.connect();
         }
 
-        // 创建统一的接口
+        // 创建统一的接口（内部包装对象，用于 close 时判断是否需断开）
         this.internalPubsubClient = {
           subscribeClient,
           publishClient,
-        } as any;
+        } as unknown as TPubSubClient;
 
         this.pubsubClient = {
           publish: async (channel: string, message: string) => {
@@ -252,7 +265,7 @@ export class RedisAdapter implements SocketIOAdapter {
             await subscribeClient.quit();
             await publishClient.quit();
           },
-        };
+        } as TPubSubClient;
       } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         throw new Error(

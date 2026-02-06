@@ -25,21 +25,34 @@ export class BatchHeartbeatManager {
   private pendingTimeouts: Set<number> = new Set();
   /** Logger 实例（可选） */
   private readonly logger?: Logger;
+  /** 翻译函数（可选，用于 i18n） */
+  private readonly tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建批量心跳管理器
    * @param pingInterval 心跳间隔（毫秒，默认：25000）
    * @param pingTimeout 心跳超时时间（毫秒，默认：20000）
    * @param logger Logger 实例（可选），用于统一日志输出
+   * @param tr 翻译函数（可选），用于错误信息国际化
    */
   constructor(
     pingInterval: number = 25000,
     pingTimeout: number = 20000,
     logger?: Logger,
+    tr?: (
+      key: string,
+      fallback: string,
+      params?: Record<string, string | number | boolean>,
+    ) => string,
   ) {
     this.pingInterval = pingInterval;
     this.pingTimeout = pingTimeout;
     this.logger = logger;
+    this.tr = tr;
   }
 
   /**
@@ -104,7 +117,11 @@ export class BatchHeartbeatManager {
               });
             } catch (error) {
               // 忽略发送错误，可能是连接已关闭
-              (this.logger?.error ?? console.error)("心跳发送错误:", error);
+              const msg = this.tr?.(
+                "log.socketio.heartbeatError",
+                "心跳发送错误",
+              ) ?? "心跳发送错误";
+              (this.logger?.error ?? console.error)(msg, error);
             }
           }
         }

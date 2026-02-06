@@ -29,21 +29,35 @@ export class MessageQueue {
   private readonly batchSize: number;
   /** Logger 实例（可选） */
   private readonly logger?: Logger;
+  /** 翻译函数（可选，用于错误信息国际化） */
+  private readonly tr?: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   /**
    * 创建消息队列
    * @param maxSize 最大队列大小（默认：10000）
    * @param batchSize 批量处理大小（默认：100）
-   * @param logger Logger 实例（可选），用于统一日志输出
+   * @param options 可选配置：logger、tr（翻译函数，用于错误信息国际化）
    */
   constructor(
     maxSize: number = 10000,
     batchSize: number = 100,
-    logger?: Logger,
+    options?: {
+      logger?: Logger;
+      tr?: (
+        key: string,
+        fallback: string,
+        params?: Record<string, string | number | boolean>,
+      ) => string;
+    },
   ) {
     this.maxSize = maxSize;
     this.batchSize = batchSize;
-    this.logger = logger;
+    this.logger = options?.logger;
+    this.tr = options?.tr;
   }
 
   /**
@@ -108,7 +122,11 @@ export class MessageQueue {
             task.socket.sendRaw(task.encoded);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            (this.logger?.error ?? console.error)("消息发送错误:", error);
+            const msg = this.tr?.(
+              "log.socketio.messageSendError",
+              "消息发送错误",
+            ) ?? "消息发送错误";
+            (this.logger?.error ?? console.error)(msg, error);
           }
         }
       }
