@@ -157,6 +157,7 @@ export class Server {
       this.options.pingInterval,
       this.options.pingTimeout,
       this.logger,
+      (key, fallback, params) => this.tr(key, fallback, params),
     );
 
     // 创建动态轮询超时管理器
@@ -170,6 +171,7 @@ export class Server {
         algorithm: "gzip",
         minSize: 1024, // 只压缩大于 1KB 的消息
         logger: this.logger,
+        tr: (key, fallback, params) => this.tr(key, fallback, params),
       });
     }
 
@@ -439,6 +441,7 @@ export class Server {
       pollingTimeout,
       this.encryptionManager,
       this.logger,
+      (key, fallback, params) => this.tr(key, fallback, params),
     );
     engineSocket.setTransport(pollingTransport);
     this.pollingTransports.set(sid, pollingTransport);
@@ -546,6 +549,7 @@ export class Server {
         this.compressionManager,
         this.encryptionManager,
         this.logger,
+        (key, fallback, params) => this.tr(key, fallback, params),
       );
       engineSocket.setTransport(wsTransport);
 
@@ -1009,8 +1013,8 @@ export class Server {
     // 销毁心跳管理器
     this.heartbeatManager.destroy();
 
-    // 更新连接数
-    this.adaptivePollingTimeout.updateConnections(0);
+    // 重置动态轮询超时管理器（无定时器，仅重置连接数状态）
+    this.adaptivePollingTimeout.reset();
 
     // 关闭所有 Engine.IO Socket
     for (const engineSocket of this.engineSockets.values()) {

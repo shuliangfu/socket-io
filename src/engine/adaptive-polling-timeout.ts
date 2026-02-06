@@ -50,4 +50,12 @@ export class AdaptivePollingTimeout {
   get connections(): number {
     return this.currentConnections;
   }
+
+  /**
+   * 重置状态（Server.close 时调用，确保无残留引用）
+   * 本类无定时器，仅维护连接数；调用 updateConnections(0) 即可
+   */
+  reset(): void {
+    this.currentConnections = 0;
+  }
 }

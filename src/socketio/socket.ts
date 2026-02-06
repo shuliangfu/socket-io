@@ -11,6 +11,7 @@ import {
   Handshake,
   SocketData,
   SocketEventListener,
+  SocketEventListenerWithData,
   SocketIOPacket,
   SocketIOPacketType,
 } from "../types.ts";
@@ -304,7 +305,11 @@ export class SocketIOSocket {
         }
       }
     } catch (error) {
-      (this._logger?.error ?? console.error)("Socket.IO 数据包处理错误:", error);
+      const msg = this._server?.tr(
+        "log.socketio.packetProcessError",
+        "Socket.IO 数据包处理错误",
+      ) ?? "Socket.IO 数据包处理错误";
+      (this._logger?.error ?? console.error)(msg, error);
     }
   }
 
@@ -482,11 +487,16 @@ export class SocketIOSocket {
    * });
    * ```
    */
-  on(event: string, listener: SocketEventListener): void {
+  on(event: string, listener: SocketEventListener): void;
+  on<T>(event: string, listener: SocketEventListenerWithData<T>): void;
+  on<T = unknown>(
+    event: string,
+    listener: SocketEventListener | SocketEventListenerWithData<T>,
+  ): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(listener);
+    this.listeners.get(event)!.add(listener as SocketEventListener);
   }
 
   /**
@@ -543,7 +553,12 @@ export class SocketIOSocket {
         try {
           listener(data, callback);
         } catch (error) {
-          (this._logger?.error ?? console.error)(`事件监听器错误 (${event}):`, error);
+          const msg = this._server?.tr(
+            "log.socketio.eventListenerError",
+            `事件监听器错误 (${event})`,
+            { event },
+          ) ?? `事件监听器错误 (${event})`;
+          (this._logger?.error ?? console.error)(msg, error);
         }
       }
     }
@@ -822,7 +837,11 @@ export class SocketIOSocket {
             );
             if (result instanceof Promise) {
               result.catch((error) => {
-                (this._logger?.error ?? console.error)("适配器房间广播失败:", error);
+                const msg = this._server?.tr(
+                  "log.socketio.adapterRoomBroadcastFailed",
+                  "适配器房间广播失败",
+                ) ?? "适配器房间广播失败";
+                (this._logger?.error ?? console.error)(msg, error);
               });
             }
           }
@@ -901,9 +920,11 @@ export class SocketIOSocket {
     const builder = {
       emit: (event: string, data?: unknown) => {
         // 如果没有指定房间，则向所有房间广播（除了排除的）
-        (this._logger?.warn ?? console.warn)(
+        const msg = this._server?.tr(
+          "log.socketio.exceptNeedsToOrIn",
           "[SocketIOSocket] except() 需要配合 to() 或 in() 使用",
-        );
+        ) ?? "[SocketIOSocket] except() 需要配合 to() 或 in() 使用";
+        (this._logger?.warn ?? console.warn)(msg);
         this.emit(event, data);
         this._except.clear();
       },
@@ -1064,7 +1085,11 @@ export class SocketIOSocket {
             const result = adapter.broadcast(adapterMessage);
             if (result instanceof Promise) {
               result.catch((error) => {
-                (this._logger?.error ?? console.error)("适配器全局广播失败:", error);
+                const msg = this._server?.tr(
+                  "log.socketio.adapterBroadcastFailed",
+                  "适配器全局广播失败",
+                ) ?? "适配器全局广播失败";
+                (this._logger?.error ?? console.error)(msg, error);
               });
             }
           }

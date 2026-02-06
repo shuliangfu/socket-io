@@ -1,4 +1,5 @@
 import type { Logger } from "@dreamer/logger";
+import type { SocketIOAdapter } from "./adapters/types.ts";
 import type { SocketIOSocket } from "./socketio/socket.ts";
 
 /**
@@ -76,7 +77,7 @@ export interface ServerOptions {
     params?: Record<string, string | number | boolean>,
   ) => string | undefined;
   /** 分布式适配器（可选，用于多服务器部署） */
-  adapter?: import("./adapters/types.ts").SocketIOAdapter;
+  adapter?: SocketIOAdapter;
   /** 加密配置（可选，用于消息加密） */
   encryption?: EncryptionConfig;
 }
@@ -166,6 +167,14 @@ export interface SocketData {
  */
 export type SocketEventListener = (
   data?: unknown,
+  callback?: (response: unknown) => void,
+) => void;
+
+/**
+ * 带泛型的 Socket 事件监听器（用于类型推断）
+ */
+export type SocketEventListenerWithData<T = unknown> = (
+  data?: T,
   callback?: (response: unknown) => void,
 ) => void;
 

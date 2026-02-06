@@ -4,6 +4,7 @@
  */
 
 import { createLogger, type Logger } from "@dreamer/logger";
+import type { HardwareAccelerator } from "../hardware-accel/accelerator.ts";
 import type { SocketIOAdapter } from "../adapters/types.ts";
 import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
@@ -65,8 +66,7 @@ export class Namespace {
   constructor(
     name: string,
     adapter?: SocketIOAdapter,
-    accelerator?:
-      import("../hardware-accel/accelerator.ts").HardwareAccelerator,
+    accelerator?: HardwareAccelerator,
     logger?: Logger,
     server?: Server,
   ) {
@@ -76,7 +76,13 @@ export class Namespace {
     this.logger = logger ?? createLogger();
     this.server = server;
     this.socketPool = new SocketPool(1000, this.logger, this.server);
-    this.messageQueue = new MessageQueue(10000, 100, this.logger);
+    this.messageQueue = new MessageQueue(10000, 100, {
+      logger: this.logger,
+      tr: this.server
+        ? (key: string, fallback: string, params?: Record<string, string | number | boolean>) =>
+          this.server!.tr(key, fallback, params)
+        : undefined,
+    });
   }
 
   /**

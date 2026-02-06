@@ -13,6 +13,7 @@
  * 2. 单节点模式：使用轮询，每 500ms 检查一次新消息（自动降级，延迟较高）
  */
 
+import type { Logger } from "@dreamer/logger";
 import { MongoClient } from "mongodb";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
@@ -115,19 +116,25 @@ export interface MongoDBAdapterOptions {
     params?: Record<string, string | number | boolean>,
   ) => string | undefined;
   /** Logger 实例（可选，也可通过 setLogger 由 Server 注入） */
-  logger?: import("@dreamer/logger").Logger;
+  logger?: Logger;
 }
 
 /**
  * MongoDB 分布式适配器
+ *
+ * 支持泛型以兼容不同版本的 mongodb 客户端。
+ * 默认使用 MongoClient（npm:mongodb），也可传入实现 MongoDBClient 接口的自定义客户端。
+ *
+ * @typeParam TClient - MongoDB 客户端类型，需实现 MongoDBClient 接口
  */
-export class MongoDBAdapter implements SocketIOAdapter {
+export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
+  implements SocketIOAdapter {
   private serverId: string = "";
   private sockets: Map<string, SocketIOSocket> = new Map();
   private connectionConfig: MongoDBConnectionConfig;
   private heartbeatInterval: number;
   private keyPrefix: string;
-  private client: MongoDBClient | null = null;
+  private client: TClient | null = null;
   private db: MongoDBDatabase | null = null;
   private roomsCollection: MongoDBCollection | null = null;
   private messagesCollection: MongoDBCollection | null = null;
@@ -135,7 +142,8 @@ export class MongoDBAdapter implements SocketIOAdapter {
   private changeStream: MongoDBChangeStream | null = null;
   private messageCallback?: (message: AdapterMessage, serverId: string) => void;
   private heartbeatTimer?: number;
-  private internalClient: any = null;
+  /** 内部客户端实例（由 MongoClient 或用户传入的客户端创建） */
+  private internalClient: TClient | null = null;
   private pollingTimer?: number;
   private useChangeStreams: boolean = true;
   private tr: (
@@ -143,7 +151,7 @@ export class MongoDBAdapter implements SocketIOAdapter {
     fallback: string,
     params?: Record<string, string | number | boolean>,
   ) => string;
-  private logger?: import("@dreamer/logger").Logger;
+  private logger?: Logger;
 
   constructor(options: MongoDBAdapterOptions) {
     this.connectionConfig = options.connection;
@@ -156,7 +164,7 @@ export class MongoDBAdapter implements SocketIOAdapter {
     };
   }
 
-  setLogger(logger: import("@dreamer/logger").Logger): void {
+  setLogger(logger: Logger): void {
     this.logger = logger;
   }
 
@@ -166,9 +174,10 @@ export class MongoDBAdapter implements SocketIOAdapter {
   private async connectMongoDB(): Promise<void> {
     try {
       const url = this.buildConnectionUrl();
-      this.internalClient = new MongoClient(url);
-      await this.internalClient.connect();
-      this.client = this.internalClient as any;
+      const mongoClient = new MongoClient(url);
+      await mongoClient.connect();
+      this.internalClient = mongoClient as unknown as TClient;
+      this.client = this.internalClient;
       if (this.client) {
         this.db = this.client.db(this.connectionConfig.database);
       }

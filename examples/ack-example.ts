@@ -16,7 +16,7 @@ server.on("connection", (socket) => {
   console.log("新连接建立:", socket.id);
 
   // 处理带确认的事件
-  socket.on("get-user-info", (userId: string, callback?: (response: any) => void) => {
+  socket.on<string>("get-user-info", (userId, callback?) => {
     console.log("收到获取用户信息请求:", userId);
 
     // 模拟异步操作
@@ -36,7 +36,7 @@ server.on("connection", (socket) => {
   });
 
   // 处理带确认的数据库查询
-  socket.on("query-database", (query: string, callback?: (response: any) => void) => {
+  socket.on<string>("query-database", (query, callback?) => {
     console.log("收到数据库查询:", query);
 
     // 模拟数据库查询
@@ -56,7 +56,8 @@ server.on("connection", (socket) => {
   });
 
   // 处理带确认的计算任务
-  socket.on("calculate", (data: { a: number; b: number; operation: string }, callback?: (response: any) => void) => {
+  socket.on<{ a: number; b: number; operation: string }>("calculate", (data, callback?) => {
+    if (!data) return;
     console.log("收到计算请求:", data);
 
     let result: number;

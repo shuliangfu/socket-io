@@ -39,8 +39,13 @@ export class PollingTransport extends Transport {
     timeout: number = 60000,
     encryptionManager?: EncryptionManager,
     logger?: Logger,
+    tr?: (
+      key: string,
+      fallback: string,
+      params?: Record<string, string | number | boolean>,
+    ) => string,
   ) {
-    super(logger);
+    super(logger, tr);
     this.timeout = timeout;
     this.encryptionManager = encryptionManager;
   }
@@ -240,6 +245,9 @@ export class PollingTransport extends Transport {
 
     // 清空待发送的数据包
     this.pendingPackets = [];
+
+    // 释放监听器引用，防止内存泄漏
+    this.clearListeners();
   }
 
   /**

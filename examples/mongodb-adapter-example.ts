@@ -39,7 +39,8 @@ io.on("connection", (socket) => {
   });
 
   // 加入聊天房间
-  socket.on("join-room", (room: string) => {
+  socket.on<string>("join-room", (room) => {
+    if (!room) return;
     socket.join(room);
     console.log(`Socket ${socket.id} 加入房间: ${room}`);
   });
