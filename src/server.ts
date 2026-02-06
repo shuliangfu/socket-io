@@ -82,6 +82,19 @@ export class Server {
   private readonly logger: Logger;
 
   /**
+   * 获取翻译文本，无 t 或翻译缺失时返回 fallback
+   * 供子模块（EngineSocket、适配器等）调用
+   */
+  tr(
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ): string {
+    const r = this.options.t?.(key, params);
+    return (r != null && r !== key) ? r : fallback;
+  }
+
+  /**
    * 调试日志：仅当 options.debug=true 时输出，使用 logger.debug（与 @dreamer/server 一致）
    */
   private debugLog(message: string): void {
@@ -128,7 +141,13 @@ export class Server {
     }`;
 
     // 创建默认命名空间
-    const defaultNamespace = new Namespace("/", this.adapter, this.accelerator);
+    const defaultNamespace = new Namespace(
+      "/",
+      this.adapter,
+      this.accelerator,
+      this.logger,
+      this,
+    );
     this.namespaces.set("/", defaultNamespace);
 
     // 创建批量心跳管理器
@@ -147,6 +166,7 @@ export class Server {
       this.compressionManager = new CompressionManager({
         algorithm: "gzip",
         minSize: 1024, // 只压缩大于 1KB 的消息
+        logger: this.logger,
       });
     }
 
@@ -187,7 +207,10 @@ export class Server {
               responses.set(sid, response);
             } catch (error) {
               // 如果处理失败，返回错误响应
-              console.error(`轮询批量处理失败 (sid: ${sid}):`, error);
+              this.logger.error(
+                this.tr("log.socketio.pollingBatchFailed", `轮询批量处理失败 (sid: ${sid})`, { sid }),
+                error,
+              );
               responses.set(
                 sid,
                 new Response("Internal Server Error", { status: 500 }),
@@ -261,7 +284,11 @@ export class Server {
     );
 
     this.logger.info(
-      `Socket.IO 服务器运行在 http://${serverHost}:${serverPort}${this.options.path}`,
+      this.tr(
+        "log.socketio.serverRunning",
+        `Socket.IO 服务器运行在 http://${serverHost}:${serverPort}${this.options.path}`,
+        { host: serverHost, port: String(serverPort), path: this.options.path },
+      ),
     );
   }
 
@@ -292,12 +319,16 @@ export class Server {
     }
 
     this.debugLog(
-      `收到请求: ${request.method} ${path}${url.search ? `?${url.search}` : ""}`,
+      this.tr(
+        "log.socketio.requestReceived",
+        `收到请求: ${request.method} ${path}${url.search ? `?${url.search}` : ""}`,
+        { method: request.method, path, search: url.search || "" },
+      ),
     );
 
     // 检查是否是 Socket.IO 路径
     if (!path.startsWith(this.options.path)) {
-      this.debugLog("路径不匹配 pathPrefix，返回 404");
+      this.debugLog(this.tr("log.socketio.pathMismatch", "路径不匹配 pathPrefix，返回 404", { path }));
       return new Response("Not Found", { status: 404 });
     }
 
@@ -312,7 +343,7 @@ export class Server {
           "Access-Control-Allow-Credentials": "true",
         });
         if (request.method === "OPTIONS") {
-          this.debugLog("CORS 预检 OPTIONS，返回 200");
+          this.debugLog(this.tr("log.socketio.corsPreflight", "CORS 预检 OPTIONS，返回 200"));
           return new Response(null, { status: 200, headers });
         }
       }
@@ -323,34 +354,48 @@ export class Server {
     const transport = pathParts[0] as TransportType;
     const sid = pathParts[1];
     this.debugLog(
-      `解析路径: transport=${transport ?? "(空)"}, sid=${sid ?? "(无)"}`,
+      this.tr(
+        "log.socketio.parsePath",
+        `解析路径: transport=${transport ?? "(空)"}, sid=${sid ?? "(无)"}`,
+        { transport: transport ?? "(空)", sid: sid ?? "(无)" },
+      ),
     );
 
     // 处理轮询传输
     if (transport === "polling") {
-      this.debugLog(`进入轮询处理 sid=${sid ?? "(无)"}`);
+      this.debugLog(
+        this.tr("log.socketio.pollingEnter", `进入轮询处理 sid=${sid ?? "(无)"}`, { sid: sid ?? "(无)" }),
+      );
       const res = await this.handlePolling(request, sid);
-      this.debugLog(`轮询返回: ${res.status}`);
+      this.debugLog(this.tr("log.socketio.pollingReturn", `轮询返回: ${res.status}`, { status: String(res.status) }));
       return res;
     }
 
     // 处理 WebSocket 传输
     if (transport === "websocket") {
-      this.debugLog(`进入 WebSocket 处理 sid=${sid ?? "(无)"}`);
+      this.debugLog(
+        this.tr("log.socketio.websocketEnter", `进入 WebSocket 处理 sid=${sid ?? "(无)"}`, { sid: sid ?? "(无)" }),
+      );
       const res = this.handleWebSocket(request, sid);
-      this.debugLog(`WebSocket 返回: ${res.status}`);
+      this.debugLog(
+        this.tr("log.socketio.websocketReturn", `WebSocket 返回: ${res.status}`, { status: String(res.status) }),
+      );
       return res;
     }
 
     // 处理 Engine.IO 握手
     if (path.endsWith("/") || path === this.options.path) {
-      this.debugLog("执行握手（生成 sid、创建轮询传输）");
+      this.debugLog(this.tr("log.socketio.handshakeStart", "执行握手（生成 sid、创建轮询传输）"));
       const res = this.handleHandshake(request);
-      this.debugLog(`握手返回: ${res.status}`);
+      this.debugLog(
+        this.tr("log.socketio.handshakeReturn", `握手返回: ${res.status}`, { status: String(res.status) }),
+      );
       return res;
     }
 
-    this.debugLog("未匹配到处理分支（非握手/轮询/websocket），返回 404");
+    this.debugLog(
+      this.tr("log.socketio.noMatchBranch", "未匹配到处理分支（非握手/轮询/websocket），返回 404"),
+    );
     return new Response("Not Found", { status: 404 });
   }
 
@@ -378,6 +423,8 @@ export class Server {
       this.options.pingTimeout,
       this.options.pingInterval,
       () => this.onEngineSocketClose(sidForClose),
+      (key, fallback, params) => this.tr(key, fallback, params),
+      this.logger,
     );
 
     // 获取动态轮询超时时间
@@ -451,8 +498,7 @@ export class Server {
 
     // 如果是 GET 请求（轮询等待），检查是否有待发送的数据包
     // 如果有待发送的数据包，立即处理，不使用批量处理器（避免延迟）
-    const hasPendingPackets =
-      (pollingTransport as any).pendingPackets?.length > 0;
+    const hasPendingPackets = pollingTransport.hasPendingPackets();
 
     // 如果是 GET 请求（轮询等待），且批量处理器可用，且没有待发送的数据包，使用批量处理
     if (
@@ -507,7 +553,12 @@ export class Server {
 
       return response || new Response();
     } catch (error) {
-      console.error("WebSocket 升级失败:", error);
+      this.logger.error(
+        this.tr("log.socketio.upgradeFailed", "WebSocket 升级失败", {
+          error: String(error),
+        }),
+        error,
+      );
       return new Response("Internal Server Error", { status: 500 });
     }
   }
@@ -558,7 +609,13 @@ export class Server {
     // 获取或创建命名空间
     let namespace = this.namespaces.get(nsp);
     if (!namespace) {
-      namespace = new Namespace(nsp, this.adapter, this.accelerator);
+      namespace = new Namespace(
+        nsp,
+        this.adapter,
+        this.accelerator,
+        this.logger,
+        this,
+      );
       this.namespaces.set(nsp, namespace);
     }
 
@@ -572,7 +629,7 @@ export class Server {
 
     // 如果是新创建的 Socket，需要手动处理当前数据包
     if (isNewSocket) {
-      (socket as any).handleSocketIOPacket(data);
+      socket.processPacket(data);
     }
   }
 
@@ -597,7 +654,9 @@ export class Server {
    */
   on(event: "connection", listener: ServerEventListener): void {
     if (event !== "connection") {
-      throw new Error(`不支持的事件: ${event}`);
+      throw new Error(
+        this.tr("log.socketio.unsupportedEvent", `不支持的事件: ${event}`, { event }),
+      );
     }
 
     // 在默认命名空间上监听
@@ -629,7 +688,13 @@ export class Server {
    */
   of(name: string): Namespace {
     if (!this.namespaces.has(name)) {
-      const namespace = new Namespace(name, this.adapter, this.accelerator);
+      const namespace = new Namespace(
+        name,
+        this.adapter,
+        this.accelerator,
+        this.logger,
+        this,
+      );
       this.namespaces.set(name, namespace);
     }
     return this.namespaces.get(name)!;
