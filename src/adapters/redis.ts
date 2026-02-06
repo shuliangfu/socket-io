@@ -97,6 +97,8 @@ export interface RedisAdapterOptions {
     key: string,
     params?: Record<string, string | number | boolean>,
   ) => string | undefined;
+  /** Logger 实例（可选，也可通过 setLogger 由 Server 注入） */
+  logger?: import("@dreamer/logger").Logger;
 }
 
 /**
@@ -121,10 +123,12 @@ export class RedisAdapter implements SocketIOAdapter {
     fallback: string,
     params?: Record<string, string | number | boolean>,
   ) => string;
+  private logger?: import("@dreamer/logger").Logger;
 
   constructor(options: RedisAdapterOptions = {}) {
     this.keyPrefix = options.keyPrefix || "socket.io";
     this.heartbeatInterval = options.heartbeatInterval || 30;
+    this.logger = options.logger;
     this.tr = (key, fallback, params) => {
       const r = options.t?.(key, params);
       return (r != null && r !== key) ? r : fallback;
@@ -151,6 +155,10 @@ export class RedisAdapter implements SocketIOAdapter {
       // 如果没有提供 Pub/Sub 配置，使用与 client 相同的配置
       this.pubsubConnectionConfig = this.connectionConfig;
     }
+  }
+
+  setLogger(logger: import("@dreamer/logger").Logger): void {
+    this.logger = logger;
   }
 
   /**
@@ -476,7 +484,7 @@ export class RedisAdapter implements SocketIOAdapter {
           callback(data.message, data.serverId);
         }
       } catch (error) {
-        console.error(
+        (this.logger?.error ?? console.error)(
           this.tr(
             "log.socketioAdapter.redisParseMessageFailed",
             "Redis 消息解析错误",

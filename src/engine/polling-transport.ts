@@ -3,6 +3,7 @@
  * 使用 HTTP 长轮询作为传输方式
  */
 
+import type { Logger } from "@dreamer/logger";
 import type { EncryptionManager } from "../encryption/encryption-manager.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { decodePayload, encodePayload } from "./parser.ts";
@@ -32,9 +33,14 @@ export class PollingTransport extends Transport {
    * 创建 HTTP 长轮询传输层
    * @param timeout 轮询超时时间（毫秒，默认：60000）
    * @param encryptionManager 加密管理器（可选）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
-  constructor(timeout: number = 60000, encryptionManager?: EncryptionManager) {
-    super();
+  constructor(
+    timeout: number = 60000,
+    encryptionManager?: EncryptionManager,
+    logger?: Logger,
+  ) {
+    super(logger);
     this.timeout = timeout;
     this.encryptionManager = encryptionManager;
   }

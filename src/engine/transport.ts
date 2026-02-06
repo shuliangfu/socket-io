@@ -3,6 +3,7 @@
  * 定义传输层的通用接口
  */
 
+import type { Logger } from "@dreamer/logger";
 import { EnginePacket } from "../types.ts";
 
 /**
@@ -20,6 +21,16 @@ export abstract class Transport {
   protected listeners: Set<TransportEventListener> = new Set();
   /** 待发送的数据包队列 */
   protected sendQueue: EnginePacket[] = [];
+  /** Logger 实例（可选） */
+  protected logger?: Logger;
+
+  /**
+   * 创建传输层
+   * @param logger Logger 实例（可选），用于统一日志输出
+   */
+  constructor(logger?: Logger) {
+    this.logger = logger;
+  }
 
   /**
    * 发送数据包
@@ -57,7 +68,7 @@ export abstract class Transport {
       try {
         listener(packet);
       } catch (error) {
-        console.error("传输层事件监听器错误:", error);
+        (this.logger?.error ?? console.error)("传输层事件监听器错误:", error);
       }
     }
   }

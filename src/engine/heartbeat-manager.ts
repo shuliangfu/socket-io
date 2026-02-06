@@ -3,6 +3,7 @@
  * 统一管理所有连接的心跳，批量发送心跳消息
  */
 
+import type { Logger } from "@dreamer/logger";
 import { EnginePacketType } from "../types.ts";
 import { EngineSocket } from "./socket.ts";
 
@@ -22,15 +23,23 @@ export class BatchHeartbeatManager {
   private started = false;
   /** 待执行的 setTimeout 定时器集合 */
   private pendingTimeouts: Set<number> = new Set();
+  /** Logger 实例（可选） */
+  private readonly logger?: Logger;
 
   /**
    * 创建批量心跳管理器
    * @param pingInterval 心跳间隔（毫秒，默认：25000）
    * @param pingTimeout 心跳超时时间（毫秒，默认：20000）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
-  constructor(pingInterval: number = 25000, pingTimeout: number = 20000) {
+  constructor(
+    pingInterval: number = 25000,
+    pingTimeout: number = 20000,
+    logger?: Logger,
+  ) {
     this.pingInterval = pingInterval;
     this.pingTimeout = pingTimeout;
+    this.logger = logger;
   }
 
   /**
@@ -95,7 +104,7 @@ export class BatchHeartbeatManager {
               });
             } catch (error) {
               // 忽略发送错误，可能是连接已关闭
-              console.error("心跳发送错误:", error);
+              (this.logger?.error ?? console.error)("心跳发送错误:", error);
             }
           }
         }

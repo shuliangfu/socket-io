@@ -101,7 +101,7 @@ export class SocketIOSocket {
   /** Engine.IO Socket */
   private engineSocket: EngineSocket;
   /** 确认回调映射（ID -> 回调函数，延迟初始化） */
-  private _ackCallbacks?: Map<number, (response: any) => void>;
+  private _ackCallbacks?: Map<number, (response: unknown) => void>;
   /** 下一个确认 ID */
   private nextAckId = 0;
   /** 解析器缓存 */
@@ -234,7 +234,7 @@ export class SocketIOSocket {
    *
    * @internal
    */
-  private get ackCallbacks(): Map<number, (response: any) => void> {
+  private get ackCallbacks(): Map<number, (response: unknown) => void> {
     if (!this._ackCallbacks) {
       this._ackCallbacks = new Map();
     }
@@ -436,7 +436,11 @@ export class SocketIOSocket {
    * });
    * ```
    */
-  emit(event: string, data?: any, callback?: (response: any) => void): void {
+  emit(
+    event: string,
+    data?: unknown,
+    callback?: (response: unknown) => void,
+  ): void {
     if (!this.connected) {
       return;
     }
@@ -530,8 +534,8 @@ export class SocketIOSocket {
    */
   private triggerEvent(
     event: string,
-    data?: any,
-    callback?: (response: any) => void,
+    data?: unknown,
+    callback?: (response: unknown) => void,
   ): void {
     const listeners = this.listeners.get(event);
     if (listeners) {
@@ -703,7 +707,7 @@ export class SocketIOSocket {
    * ```
    */
   to(room: string): {
-    emit: (event: string, data?: any) => void;
+    emit: (event: string, data?: unknown) => void;
     to: (room: string) => ReturnType<SocketIOSocket["to"]>;
     in: (room: string) => ReturnType<SocketIOSocket["to"]>;
     except: (room: string | string[]) => ReturnType<SocketIOSocket["to"]>;
@@ -713,7 +717,7 @@ export class SocketIOSocket {
     const except = new Set<string>(this._except);
 
     const builder = {
-      emit: (event: string, data?: any) => {
+      emit: (event: string, data?: unknown) => {
         // 收集所有目标房间的 socket
         const targetSocketIds = new Set<string>();
 
@@ -885,7 +889,7 @@ export class SocketIOSocket {
    * ```
    */
   except(room: string | string[]): {
-    emit: (event: string, data?: any) => void;
+    emit: (event: string, data?: unknown) => void;
     to: (room: string) => ReturnType<SocketIOSocket["to"]>;
     in: (room: string) => ReturnType<SocketIOSocket["to"]>;
     except: (room: string | string[]) => ReturnType<SocketIOSocket["to"]>;
@@ -895,7 +899,7 @@ export class SocketIOSocket {
     rooms.forEach((r) => this._except.add(r));
     // 返回一个可以链式调用的对象，但需要先调用 to() 或 in()
     const builder = {
-      emit: (event: string, data?: any) => {
+      emit: (event: string, data?: unknown) => {
         // 如果没有指定房间，则向所有房间广播（除了排除的）
         (this._logger?.warn ?? console.warn)(
           "[SocketIOSocket] except() 需要配合 to() 或 in() 使用",
@@ -960,14 +964,14 @@ export class SocketIOSocket {
    * ```
    */
   get broadcast(): {
-    emit: (event: string, data?: any) => void;
+    emit: (event: string, data?: unknown) => void;
     to: (room: string) => ReturnType<SocketIOSocket["to"]>;
     in: (room: string) => ReturnType<SocketIOSocket["to"]>;
     except: (room: string | string[]) => ReturnType<SocketIOSocket["to"]>;
     compress: (value: boolean) => ReturnType<SocketIOSocket["to"]>;
   } {
     return {
-      emit: (event: string, data?: any) => {
+      emit: (event: string, data?: unknown) => {
         // 收集所有其他 socket（排除自己）
         const targetSocketIds = new Set<string>();
         const except = new Set<string>(this._except);

@@ -3,6 +3,7 @@
  * 使用 WebSocket 作为传输方式
  */
 
+import type { Logger } from "@dreamer/logger";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { decodePacket, encodePacket } from "./parser.ts";
 import { Transport } from "./transport.ts";
@@ -28,16 +29,22 @@ export class WebSocketTransport extends Transport {
    * @param ws WebSocket 连接
    * @param compressionManager 压缩管理器（可选）
    * @param encryptionManager 加密管理器（可选）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
   constructor(
     ws: WebSocket,
     compressionManager?: CompressionManager,
     encryptionManager?: EncryptionManager,
+    logger?: Logger,
   ) {
-    super();
+    super(logger);
     this.ws = ws;
     this.compressionManager = compressionManager;
     this.encryptionManager = encryptionManager;
+    // 将 logger 传递给静态 batchSender（首次创建时设置）
+    if (logger) {
+      WebSocketTransport.batchSender.setLogger(logger);
+    }
     this.setupListeners();
   }
 
@@ -77,7 +84,7 @@ export class WebSocketTransport extends Transport {
             // 解密失败，可能是未加密的消息或密钥不匹配
             // 如果是加密消息但解密失败，记录错误
             if (this.encryptionManager.isEncrypted(data)) {
-              console.error("消息解密失败:", error);
+              (this.logger?.error ?? console.error)("消息解密失败:", error);
               this.emit({
                 type: EnginePacketType.CLOSE,
                 data: "解密错误",
@@ -91,7 +98,7 @@ export class WebSocketTransport extends Transport {
         const packet = decodePacket(data);
         this.emit(packet);
       } catch (error) {
-        console.error("WebSocket 消息解析错误:", error);
+        (this.logger?.error ?? console.error)("WebSocket 消息解析错误:", error);
         this.emit({
           type: EnginePacketType.CLOSE,
           data: "解析错误",
@@ -109,7 +116,7 @@ export class WebSocketTransport extends Transport {
 
     // 监听错误
     this.ws.addEventListener("error", (error) => {
-      console.error("WebSocket 错误:", error);
+      (this.logger?.error ?? console.error)("WebSocket 错误:", error);
       this.closed = true;
       this.emit({
         type: EnginePacketType.CLOSE,
@@ -146,7 +153,7 @@ export class WebSocketTransport extends Transport {
         WebSocketTransport.batchSender.add(this.ws, encoded, 0);
       }
     } catch (error) {
-      console.error("WebSocket 发送错误:", error);
+      (this.logger?.error ?? console.error)("WebSocket 发送错误:", error);
       this.closed = true;
       this.emit({
         type: EnginePacketType.CLOSE,

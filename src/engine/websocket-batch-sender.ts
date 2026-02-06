@@ -3,6 +3,8 @@
  * 批量发送 WebSocket 帧，减少系统调用
  */
 
+import type { Logger } from "@dreamer/logger";
+
 /**
  * WebSocket 发送任务
  */
@@ -22,13 +24,24 @@ export class WebSocketBatchSender {
   private processing = false;
   /** 批量处理大小 */
   private readonly batchSize: number;
+  /** Logger 实例（可选） */
+  private logger?: Logger;
 
   /**
    * 创建 WebSocket 批量发送器
    * @param batchSize 批量处理大小（默认：100）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
-  constructor(batchSize: number = 100) {
+  constructor(batchSize: number = 100, logger?: Logger) {
     this.batchSize = batchSize;
+    this.logger = logger;
+  }
+
+  /**
+   * 设置 Logger（用于静态实例，由 WebSocketTransport 在首次创建时调用）
+   */
+  setLogger(logger: Logger): void {
+    this.logger = logger;
   }
 
   /**
@@ -63,7 +76,7 @@ export class WebSocketBatchSender {
             task.ws.send(task.data);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            console.error("WebSocket 发送错误:", error);
+            (this.logger?.error ?? console.error)("WebSocket 发送错误:", error);
           }
         }
       }
