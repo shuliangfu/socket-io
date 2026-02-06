@@ -92,6 +92,11 @@ export interface RedisAdapterOptions {
   pubsubClient?: RedisPubSubClient;
   /** 服务器心跳间隔（秒，默认：30） */
   heartbeatInterval?: number;
+  /** 翻译函数（可选，用于 i18n） */
+  t?: (
+    key: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string | undefined;
 }
 
 /**
@@ -111,10 +116,19 @@ export class RedisAdapter implements SocketIOAdapter {
   private messageCallback?: (message: AdapterMessage, serverId: string) => void;
   private internalClient: any = null;
   private internalPubsubClient: any = null;
+  private tr: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   constructor(options: RedisAdapterOptions = {}) {
     this.keyPrefix = options.keyPrefix || "socket.io";
     this.heartbeatInterval = options.heartbeatInterval || 30;
+    this.tr = (key, fallback, params) => {
+      const r = options.t?.(key, params);
+      return (r != null && r !== key) ? r : fallback;
+    };
 
     if (options.connection) {
       this.connectionConfig = options.connection;
@@ -122,7 +136,10 @@ export class RedisAdapter implements SocketIOAdapter {
       this.client = options.client;
     } else {
       throw new Error(
-        "RedisAdapter 需要提供 connection 配置或 client 实例",
+        this.tr(
+          "log.socketioAdapter.redisNeedConnectionOrClient",
+          "RedisAdapter 需要提供 connection 配置或 client 实例",
+        ),
       );
     }
 
@@ -153,10 +170,13 @@ export class RedisAdapter implements SocketIOAdapter {
         await this.internalClient.connect();
         this.client = this.internalClient as any;
       } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
         throw new Error(
-          `无法创建 Redis 客户端: ${
-            error instanceof Error ? error.message : String(error)
-          }。请确保已安装 redis 包（npm install redis）`,
+          this.tr(
+            "log.socketioAdapter.redisCannotCreateClient",
+            `无法创建 Redis 客户端: ${errMsg}。请确保已安装 redis 包（npm install redis）`,
+            { error: errMsg },
+          ),
         );
       }
     }
@@ -226,10 +246,13 @@ export class RedisAdapter implements SocketIOAdapter {
           },
         };
       } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
         throw new Error(
-          `无法创建 Redis Pub/Sub 客户端: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          this.tr(
+            "log.socketioAdapter.redisCannotCreatePubSubClient",
+            `无法创建 Redis Pub/Sub 客户端: ${errMsg}。请确保已安装 redis 包（npm install redis）`,
+            { error: errMsg },
+          ),
         );
       }
     }
@@ -453,7 +476,13 @@ export class RedisAdapter implements SocketIOAdapter {
           callback(data.message, data.serverId);
         }
       } catch (error) {
-        console.error("Redis 消息解析错误:", error);
+        console.error(
+          this.tr(
+            "log.socketioAdapter.redisParseMessageFailed",
+            "Redis 消息解析错误",
+          ),
+          error,
+        );
       }
     });
 

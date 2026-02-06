@@ -76,6 +76,36 @@ describe("Socket.IO 命名空间", () => {
     expect(namespace.getSocket("test-id")).toBeUndefined();
   }, { sanitizeOps: false, sanitizeResources: false });
 
+  it("应该支持 socket.getServer()（当 Namespace 关联 Server 时）", async () => {
+    const mockServer = { id: "test-server" };
+    const namespace = new Namespace(
+      "/chat",
+      undefined,
+      undefined,
+      undefined,
+      mockServer as any,
+    );
+    const handshake: Handshake = {
+      query: {},
+      headers: new Headers(),
+      url: "http://localhost:3000",
+    };
+    const engineSocket = new EngineSocket("test-id", handshake);
+    const mockTransport = {
+      send: () => {},
+      close: () => {},
+      isClosed: () => false,
+      on: () => {},
+      off: () => {},
+    };
+    engineSocket.setTransport(mockTransport as any);
+
+    const socket = await namespace.addSocket(engineSocket);
+    await delay(100);
+
+    expect(socket.getServer()).toBe(mockServer);
+  }, { sanitizeOps: false, sanitizeResources: false });
+
   it("应该支持房间管理", async () => {
     const namespace = new Namespace("/chat");
     const handshake: Handshake = {

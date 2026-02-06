@@ -3,6 +3,8 @@
  * 复用 Socket 对象，减少对象创建和销毁开销
  */
 
+import type { Logger } from "@dreamer/logger";
+import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
 import { SocketIOSocket } from "./socket.ts";
 
@@ -16,13 +18,21 @@ export class SocketPool {
   private readonly maxSize: number;
   /** 当前活跃的 Socket 数量 */
   private activeCount = 0;
+  /** Logger 实例（用于 Socket 统一日志） */
+  private readonly logger?: Logger;
+  /** Server 实例（用于 Socket.getServer()） */
+  private readonly server?: Server;
 
   /**
    * 创建 Socket 对象池
    * @param maxSize 最大池大小（默认：1000）
+   * @param logger Logger 实例（可选），用于 Socket 统一日志输出
+   * @param server Server 实例（可选），用于 Socket.getServer() 与 websocket 对齐
    */
-  constructor(maxSize: number = 1000) {
+  constructor(maxSize: number = 1000, logger?: Logger, server?: Server) {
     this.maxSize = maxSize;
+    this.logger = logger;
+    this.server = server;
   }
 
   /**
@@ -40,7 +50,7 @@ export class SocketPool {
       socket.reset(engineSocket, nsp);
     } else {
       // 创建新的 Socket
-      socket = new SocketIOSocket(engineSocket, nsp);
+      socket = new SocketIOSocket(engineSocket, nsp, this.logger, this.server);
     }
 
     this.activeCount++;

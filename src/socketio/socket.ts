@@ -3,6 +3,8 @@
  * 表示一个 Socket.IO 连接
  */
 
+import type { Logger } from "@dreamer/logger";
+import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
 import {
   EnginePacketType,
@@ -47,14 +49,49 @@ export interface RoomManager {
  * Socket.IO Socket
  */
 export class SocketIOSocket {
-  /** Socket ID */
-  public readonly id: string;
-  /** 命名空间 */
-  public readonly nsp: string;
-  /** 握手信息 */
-  public readonly handshake: Handshake;
+  /** Socket ID（对象池 reset 时可更新） */
+  private _id: string;
+  /** 命名空间（对象池 reset 时可更新） */
+  private _nsp: string;
+  /** 握手信息（对象池 reset 时可更新） */
+  private _handshake: Handshake;
   /** 数据存储 */
   public data: SocketData = {};
+
+  /** Socket ID（公开只读） */
+  public get id(): string {
+    return this._id;
+  }
+  /** 命名空间（公开只读） */
+  public get nsp(): string {
+    return this._nsp;
+  }
+  /** 握手信息（公开只读） */
+  public get handshake(): Handshake {
+    return this._handshake;
+  }
+
+  /**
+   * 获取 Server 实例（与 @dreamer/websocket 对齐）
+   *
+   * 供中间件、MessageQueue 等调用 tr 等方法。
+   *
+   * @returns Server 实例，若 Socket 未关联 Server 则返回 undefined
+   *
+   * @example
+   * ```typescript
+   * socket.on("message", () => {
+   *   const server = socket.getServer();
+   *   if (server) {
+   *     const msg = server.options.t?.("key", {}) ?? "fallback";
+   *   }
+   * });
+   * ```
+   */
+  getServer(): Server | undefined {
+    return this._server;
+  }
+
   /** 是否已连接 */
   public connected = true;
   /** 房间列表（延迟初始化） */
@@ -83,6 +120,10 @@ export class SocketIOSocket {
   private localSockets: Map<string, SocketIOSocket> = new Map();
   /** Socket 自己的消息缓存 */
   private localMessageCache: Map<string, string> = new Map();
+  /** Logger 实例（统一日志输出，可选） */
+  private _logger?: Logger;
+  /** Server 实例（可选，用于 getServer() 与 websocket 对齐） */
+  private _server?: Server;
 
   /**
    * 创建 Socket.IO Socket 实例
@@ -92,18 +133,27 @@ export class SocketIOSocket {
    *
    * @param engineSocket - Engine.IO Socket 实例，负责底层网络通信
    * @param nsp - 命名空间，默认为 "/"
+   * @param logger - Logger 实例（可选），用于统一日志输出
+   * @param server - Server 实例（可选），用于 getServer() 与 websocket 对齐
    *
    * @example
    * ```typescript
    * const socket = new SocketIOSocket(engineSocket, "/chat");
    * ```
    */
-  constructor(engineSocket: EngineSocket, nsp: string = "/") {
+  constructor(
+    engineSocket: EngineSocket,
+    nsp: string = "/",
+    logger?: Logger,
+    server?: Server,
+  ) {
     this.engineSocket = engineSocket;
-    this.id = engineSocket.id;
-    this.nsp = nsp;
-    this.handshake = engineSocket.handshake;
+    this._id = engineSocket.id;
+    this._nsp = nsp;
+    this._handshake = engineSocket.handshake;
     this.connected = true;
+    this._logger = logger;
+    this._server = server;
 
     // 监听 Engine.IO 数据包
     this.engineSocket.on((packet) => {
@@ -139,6 +189,27 @@ export class SocketIOSocket {
   }
 
   /**
+   * 将 Socket 加入房间（供 Namespace 等内部模块调用，与 join 配合使用）
+   * @param room 房间名称
+   * @internal
+   */
+  addToRoom(room: string): void {
+    if (!this._rooms) {
+      this._rooms = new Set();
+    }
+    this._rooms.add(room);
+  }
+
+  /**
+   * 将 Socket 移出房间（供 Namespace 等内部模块调用，与 leave 配合使用）
+   * @param room 房间名称
+   * @internal
+   */
+  removeFromRoom(room: string): void {
+    this._rooms?.delete(room);
+  }
+
+  /**
    * 获取事件监听器映射（延迟初始化）
    *
    * 返回事件名称到监听器集合的映射。使用延迟初始化优化内存使用。
@@ -171,7 +242,16 @@ export class SocketIOSocket {
   }
 
   /**
-   * 处理 Socket.IO 数据包
+   * 处理 Socket.IO 数据包（供 Server 等内部模块调用）
+   * @param data 数据包字符串
+   * @internal
+   */
+  processPacket(data: string): void {
+    this.handleSocketIOPacket(data);
+  }
+
+  /**
+   * 内部处理 Socket.IO 数据包
    * @param data 数据包字符串
    */
   private handleSocketIOPacket(data: string): void {
@@ -198,8 +278,10 @@ export class SocketIOSocket {
         }
 
         case SocketIOPacketType.DISCONNECT: {
-          // 断开连接
-          this.disconnect(packet.data);
+          // 断开连接（data 为断开原因字符串）
+          this.disconnect(
+            typeof packet.data === "string" ? packet.data : undefined,
+          );
           break;
         }
 
@@ -222,7 +304,7 @@ export class SocketIOSocket {
         }
       }
     } catch (error) {
-      console.error("Socket.IO 数据包处理错误:", error);
+      (this._logger?.error ?? console.error)("Socket.IO 数据包处理错误:", error);
     }
   }
 
@@ -457,7 +539,7 @@ export class SocketIOSocket {
         try {
           listener(data, callback);
         } catch (error) {
-          console.error(`事件监听器错误 (${event}):`, error);
+          (this._logger?.error ?? console.error)(`事件监听器错误 (${event}):`, error);
         }
       }
     }
@@ -736,7 +818,7 @@ export class SocketIOSocket {
             );
             if (result instanceof Promise) {
               result.catch((error) => {
-                console.error("适配器房间广播失败:", error);
+                (this._logger?.error ?? console.error)("适配器房间广播失败:", error);
               });
             }
           }
@@ -815,7 +897,7 @@ export class SocketIOSocket {
     const builder = {
       emit: (event: string, data?: any) => {
         // 如果没有指定房间，则向所有房间广播（除了排除的）
-        console.warn(
+        (this._logger?.warn ?? console.warn)(
           "[SocketIOSocket] except() 需要配合 to() 或 in() 使用",
         );
         this.emit(event, data);
@@ -978,7 +1060,7 @@ export class SocketIOSocket {
             const result = adapter.broadcast(adapterMessage);
             if (result instanceof Promise) {
               result.catch((error) => {
-                console.error("适配器全局广播失败:", error);
+                (this._logger?.error ?? console.error)("适配器全局广播失败:", error);
               });
             }
           }
@@ -1127,9 +1209,9 @@ export class SocketIOSocket {
 
     // 设置新的状态
     this.engineSocket = engineSocket;
-    (this as any).id = engineSocket.id;
-    (this as any).nsp = nsp;
-    (this as any).handshake = engineSocket.handshake;
+    this._id = engineSocket.id;
+    this._nsp = nsp;
+    this._handshake = engineSocket.handshake;
     this.connected = true;
     this.nextAckId = 0;
 

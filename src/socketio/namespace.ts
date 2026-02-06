@@ -3,7 +3,9 @@
  * 管理命名空间内的 Socket 连接
  */
 
+import { createLogger, type Logger } from "@dreamer/logger";
 import type { SocketIOAdapter } from "../adapters/types.ts";
+import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
 import {
   Middleware,
@@ -34,11 +36,15 @@ export class Namespace {
   /** 消息缓存 */
   private messageCache: MessageCache;
   /** Socket 对象池 */
-  private socketPool: SocketPool = new SocketPool(1000);
+  private socketPool: SocketPool;
   /** 消息队列 */
-  private messageQueue: MessageQueue = new MessageQueue(10000, 100);
+  private messageQueue: MessageQueue;
   /** 分布式适配器（可选） */
   private adapter?: SocketIOAdapter;
+  /** Logger 实例（统一日志输出） */
+  private readonly logger: Logger;
+  /** Server 实例（可选，用于 Socket.getServer() 与 websocket 对齐） */
+  private readonly server?: Server;
 
   /**
    * 创建命名空间实例
@@ -48,6 +54,8 @@ export class Namespace {
    * @param name - 命名空间名称，必须以 "/" 开头，例如 "/chat", "/game"
    * @param adapter - 分布式适配器（可选），用于在多服务器环境下同步消息
    * @param accelerator - 硬件加速器（可选），用于加速消息缓存等计算密集型操作
+   * @param logger - Logger 实例（可选），用于统一日志输出
+   * @param server - Server 实例（可选），用于 Socket.getServer() 与 websocket 对齐
    *
    * @example
    * ```typescript
@@ -59,10 +67,16 @@ export class Namespace {
     adapter?: SocketIOAdapter,
     accelerator?:
       import("../hardware-accel/accelerator.ts").HardwareAccelerator,
+    logger?: Logger,
+    server?: Server,
   ) {
     this.name = name;
     this.adapter = adapter;
     this.messageCache = new MessageCache(1000, accelerator);
+    this.logger = logger ?? createLogger();
+    this.server = server;
+    this.socketPool = new SocketPool(1000, this.logger, this.server);
+    this.messageQueue = new MessageQueue(10000, 100, this.logger);
   }
 
   /**
@@ -149,7 +163,12 @@ export class Namespace {
     // 执行中间件
     for (const middleware of this.middlewares) {
       await new Promise<void>((resolve, reject) => {
-        const socket = new SocketIOSocket(engineSocket, this.name);
+        const socket = new SocketIOSocket(
+      engineSocket,
+      this.name,
+      this.logger,
+      this.server,
+    );
         middleware(socket, (error) => {
           if (error) {
             reject(error);
@@ -196,16 +215,14 @@ export class Namespace {
     socket.join = (room: string) => {
       originalJoin(room);
       this.addSocketToRoom(socket.id, room);
-      // 确保 socket.rooms 包含这个房间
-      (socket as any)._rooms?.add(room);
+      socket.addToRoom(room);
     };
 
     const originalLeave = socket.leave.bind(socket);
     socket.leave = (room: string) => {
       originalLeave(room);
       this.removeSocketFromRoom(socket.id, room);
-      // 确保 socket.rooms 移除这个房间
-      (socket as any)._rooms?.delete(room);
+      socket.removeFromRoom(room);
     };
 
     // Socket 现在会使用房间管理器，不需要重写 to() 和 broadcast 方法
@@ -219,7 +236,7 @@ export class Namespace {
       try {
         listener(socket);
       } catch (error) {
-        console.error("连接事件监听器错误:", error);
+        this.logger.error("连接事件监听器错误:", error);
       }
     }
 
@@ -286,7 +303,7 @@ export class Namespace {
       const result = this.adapter.addSocketToRoom(socketId, room, this.name);
       if (result instanceof Promise) {
         result.catch((error) => {
-          console.error("适配器添加 Socket 到房间失败:", error);
+          this.logger.error("适配器添加 Socket 到房间失败:", error);
         });
       }
     }
@@ -331,7 +348,7 @@ export class Namespace {
       );
       if (result instanceof Promise) {
         result.catch((error) => {
-          console.error("适配器从房间移除 Socket 失败:", error);
+          this.logger.error("适配器从房间移除 Socket 失败:", error);
         });
       }
     }
@@ -438,7 +455,7 @@ export class Namespace {
             });
             if (result instanceof Promise) {
               result.catch((error) => {
-                console.error("适配器房间广播失败:", error);
+                this.logger.error("适配器房间广播失败:", error);
               });
             }
           }
@@ -552,7 +569,7 @@ export class Namespace {
               });
               if (result instanceof Promise) {
                 result.catch((error) => {
-                  console.error("适配器房间广播失败:", error);
+                  this.logger.error("适配器房间广播失败:", error);
                 });
               }
             }
@@ -618,7 +635,7 @@ export class Namespace {
           });
           if (result instanceof Promise) {
             result.catch((error) => {
-              console.error("适配器全局广播失败:", error);
+              this.logger.error("适配器全局广播失败:", error);
             });
           }
         }
@@ -675,7 +692,7 @@ export class Namespace {
       });
       if (result instanceof Promise) {
         result.catch((error) => {
-          console.error("适配器全局广播失败:", error);
+          this.logger.error("适配器全局广播失败:", error);
         });
       }
     }

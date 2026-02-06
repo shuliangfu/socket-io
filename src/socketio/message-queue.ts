@@ -3,6 +3,7 @@
  * 缓冲和批量处理消息，提高吞吐量
  */
 
+import type { Logger } from "@dreamer/logger";
 import { SocketIOSocket } from "./socket.ts";
 
 /**
@@ -26,15 +27,23 @@ export class MessageQueue {
   private processing = false;
   /** 批量处理大小 */
   private readonly batchSize: number;
+  /** Logger 实例（可选） */
+  private readonly logger?: Logger;
 
   /**
    * 创建消息队列
    * @param maxSize 最大队列大小（默认：10000）
    * @param batchSize 批量处理大小（默认：100）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
-  constructor(maxSize: number = 10000, batchSize: number = 100) {
+  constructor(
+    maxSize: number = 10000,
+    batchSize: number = 100,
+    logger?: Logger,
+  ) {
     this.maxSize = maxSize;
     this.batchSize = batchSize;
+    this.logger = logger;
   }
 
   /**
@@ -99,7 +108,7 @@ export class MessageQueue {
             task.socket.sendRaw(task.encoded);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            console.error("消息发送错误:", error);
+            (this.logger?.error ?? console.error)("消息发送错误:", error);
           }
         }
       }

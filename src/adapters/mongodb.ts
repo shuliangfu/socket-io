@@ -109,6 +109,11 @@ export interface MongoDBAdapterOptions {
   connection: MongoDBConnectionConfig;
   /** 服务器心跳间隔（秒，默认：30） */
   heartbeatInterval?: number;
+  /** 翻译函数（可选，用于 i18n） */
+  t?: (
+    key: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string | undefined;
 }
 
 /**
@@ -131,11 +136,20 @@ export class MongoDBAdapter implements SocketIOAdapter {
   private internalClient: any = null;
   private pollingTimer?: number;
   private useChangeStreams: boolean = true;
+  private tr: (
+    key: string,
+    fallback: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string;
 
   constructor(options: MongoDBAdapterOptions) {
     this.connectionConfig = options.connection;
     this.heartbeatInterval = options.heartbeatInterval || 30;
     this.keyPrefix = options.keyPrefix || "socket.io";
+    this.tr = (key, fallback, params) => {
+      const r = options.t?.(key, params);
+      return (r != null && r !== key) ? r : fallback;
+    };
   }
 
   /**
@@ -159,7 +173,10 @@ export class MongoDBAdapter implements SocketIOAdapter {
           error.message.includes("Cannot find module"))
       ) {
         throw new Error(
-          "MongoDB 客户端未安装。请安装 mongodb 包：deno add npm:mongodb",
+          this.tr(
+            "log.socketioAdapter.mongoClientNotInstalled",
+            "MongoDB 客户端未安装。请安装 mongodb 包：deno add npm:mongodb",
+          ),
         );
       }
 
@@ -172,12 +189,22 @@ export class MongoDBAdapter implements SocketIOAdapter {
         errorMessage.includes("not a replica set")
       ) {
         throw new Error(
-          `连接 MongoDB 失败（副本集相关）: ${errorMessage}\n` +
-            `提示：如果使用单节点副本集，请在配置中添加 replicaSet 参数`,
+          this.tr(
+            "log.socketioAdapter.mongoConnectFailedReplicaSet",
+            `连接 MongoDB 失败（副本集相关）: ${errorMessage}\n` +
+              `提示：如果使用单节点副本集，请在配置中添加 replicaSet 参数`,
+            { error: errorMessage },
+          ),
         );
       }
 
-      throw new Error(`连接 MongoDB 失败: ${errorMessage}`);
+      throw new Error(
+        this.tr(
+          "log.socketioAdapter.mongoConnectFailed",
+          `连接 MongoDB 失败: ${errorMessage}`,
+          { error: errorMessage },
+        ),
+      );
     }
   }
 
@@ -234,7 +261,12 @@ export class MongoDBAdapter implements SocketIOAdapter {
    */
   private async initializeCollections(): Promise<void> {
     if (!this.db) {
-      throw new Error("MongoDB 数据库未连接");
+      throw new Error(
+        this.tr(
+          "log.socketioAdapter.mongoDatabaseNotConnected",
+          "MongoDB 数据库未连接",
+        ),
+      );
     }
 
     this.roomsCollection = this.db.collection(`${this.keyPrefix}_rooms`);
@@ -257,7 +289,13 @@ export class MongoDBAdapter implements SocketIOAdapter {
       }
     } catch (error) {
       // 忽略索引创建错误（可能已存在）
-      console.warn("创建索引失败（可能已存在）:", error);
+      console.warn(
+        this.tr(
+          "log.socketioAdapter.mongoCreateIndexFailed",
+          "创建索引失败（可能已存在）",
+        ),
+        error,
+      );
     }
   }
 
@@ -501,7 +539,10 @@ export class MongoDBAdapter implements SocketIOAdapter {
     } catch (error) {
       // Change Streams 不可用，降级到轮询
       console.warn(
-        "Change Streams 不可用，降级到轮询模式:",
+        this.tr(
+          "log.socketioAdapter.mongoChangeStreamsUnavailable",
+          "Change Streams 不可用，降级到轮询模式",
+        ),
         error instanceof Error ? error.message : String(error),
       );
       this.useChangeStreams = false;
@@ -630,7 +671,13 @@ export class MongoDBAdapter implements SocketIOAdapter {
         }
       }
     } catch (error) {
-      console.error("轮询消息错误:", error);
+      console.error(
+        this.tr(
+          "log.socketioAdapter.mongoPollingError",
+          "轮询消息错误",
+        ),
+        error,
+      );
     }
   }
 }

@@ -1,4 +1,5 @@
-import type { Logger } from "@dreamer/logger"
+import type { Logger } from "@dreamer/logger";
+import type { SocketIOSocket } from "./socketio/socket.ts";
 
 /**
  * @fileoverview Socket.IO 类型定义
@@ -66,6 +67,14 @@ export interface ServerOptions {
   pollingTimeout?: number;
   /** 是否启用调试日志（默认：false），开启后会在控制台输出请求路径、握手等调试信息 */
   debug?: boolean;
+  /**
+   * 翻译函数（可选，用于 i18n）
+   * 传入时，debug 日志、错误信息将使用 t(key, params) 获取翻译；未传入时使用默认中文
+   */
+  t?: (
+    key: string,
+    params?: Record<string, string | number | boolean>,
+  ) => string | undefined;
   /** 分布式适配器（可选，用于多服务器部署） */
   adapter?: import("./adapters/types.ts").SocketIOAdapter;
   /** 加密配置（可选，用于消息加密） */
@@ -121,8 +130,8 @@ export interface SocketIOPacket {
   type: SocketIOPacketType;
   /** 命名空间（可选） */
   nsp?: string;
-  /** 数据内容 */
-  data?: any;
+  /** 数据内容（协议层，可为字符串或结构化数据） */
+  data?: unknown;
   /** 确认 ID（可选） */
   id?: number;
   /** 附件数量（二进制数据） */
@@ -156,20 +165,20 @@ export interface SocketData {
  * Socket 事件监听器
  */
 export type SocketEventListener = (
-  data?: any,
-  callback?: (response: any) => void,
+  data?: unknown,
+  callback?: (response: unknown) => void,
 ) => void;
 
 /**
  * 服务器事件监听器
  */
-export type ServerEventListener = (socket: any) => void;
+export type ServerEventListener = (socket: SocketIOSocket) => void;
 
 /**
  * 中间件函数
  */
 export type Middleware = (
-  socket: any,
+  socket: SocketIOSocket,
   next: (error?: Error) => void,
 ) => void | Promise<void>;
 
@@ -206,4 +215,4 @@ export interface ClientOptions {
 /**
  * 客户端事件监听器
  */
-export type ClientEventListener = (data?: any) => void;
+export type ClientEventListener = (data?: unknown) => void;

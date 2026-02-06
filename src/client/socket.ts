@@ -107,8 +107,10 @@ export class ClientSocket {
           break;
 
         case SocketIOPacketType.DISCONNECT:
-          // 断开连接
-          this.disconnect(packet.data);
+          // 断开连接（data 为断开原因字符串）
+          this.disconnect(
+            typeof packet.data === "string" ? packet.data : undefined,
+          );
           break;
 
         case SocketIOPacketType.EVENT:

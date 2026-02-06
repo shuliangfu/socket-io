@@ -3,6 +3,8 @@
  * 使用 gzip/deflate 压缩消息，减少网络传输量
  */
 
+import type { Logger } from "@dreamer/logger";
+
 /**
  * 压缩算法类型
  */
@@ -18,6 +20,8 @@ export interface CompressionManagerOptions {
   minSize?: number;
   /** 压缩级别（1-9，默认：6） */
   level?: number;
+  /** Logger 实例（可选），用于统一日志输出 */
+  logger?: Logger;
 }
 
 /**
@@ -31,6 +35,8 @@ export class CompressionManager {
   private readonly minSize: number;
   /** 是否启用压缩 */
   private enabled: boolean;
+  /** Logger 实例（可选） */
+  private readonly logger?: Logger;
 
   /**
    * 创建压缩管理器
@@ -40,10 +46,11 @@ export class CompressionManager {
     this.algorithm = options.algorithm || "gzip";
     this.minSize = options.minSize || 1024;
     this.enabled = true;
+    this.logger = options.logger;
 
     // 检查是否支持压缩 API
     if (typeof CompressionStream === "undefined") {
-      console.warn(
+      (this.logger?.warn ?? console.warn)(
         "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+",
       );
       this.enabled = false;
@@ -126,7 +133,7 @@ export class CompressionManager {
 
       return result;
     } catch (error) {
-      console.error("压缩失败:", error);
+      (this.logger?.error ?? console.error)("压缩失败:", error);
       // 压缩失败，返回原始数据
       if (typeof data === "string") {
         return new TextEncoder().encode(data);

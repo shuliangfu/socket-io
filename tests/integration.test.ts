@@ -114,9 +114,10 @@ describe("Socket.IO 集成测试", () => {
     });
 
     server.on("connection", (socket) => {
-      socket.on("join-room", (roomId: string) => {
-        socket.join(roomId);
-        socket.to(roomId).emit("user-joined", { userId: socket.id });
+      socket.on("join-room", (roomId: unknown) => {
+        const room = typeof roomId === "string" ? roomId : String(roomId);
+        socket.join(room);
+        socket.to(room).emit("user-joined", { userId: socket.id });
       });
     });
 

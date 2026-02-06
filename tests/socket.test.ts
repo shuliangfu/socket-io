@@ -81,7 +81,7 @@ describe("Socket.IO Socket", () => {
       data: ["test-event", { message: "hello" }],
     };
     const encoded = encodePacket(socketIOPacket);
-    (socket as any).handleSocketIOPacket(encoded);
+    socket.processPacket(encoded);
 
     expect(eventReceived).toBe(true);
     expect(receivedData).toEqual({ message: "hello" });
@@ -110,7 +110,7 @@ describe("Socket.IO Socket", () => {
         data: ["test-event", {}],
       }),
     };
-    (socket as any).handleSocketIOPacket(packet.data);
+    socket.processPacket(packet.data);
 
     expect(callCount).toBe(0);
   }, { sanitizeOps: false, sanitizeResources: false });
@@ -145,14 +145,14 @@ describe("Socket.IO Socket", () => {
       data: ["test-event", {}],
     };
     const encoded1 = encodePacket(socketIOPacket1);
-    (socket as any).handleSocketIOPacket(encoded1);
+    socket.processPacket(encoded1);
 
     const socketIOPacket2 = {
       type: SocketIOPacketType.EVENT,
       data: ["test-event", {}],
     };
     const encoded2 = encodePacket(socketIOPacket2);
-    (socket as any).handleSocketIOPacket(encoded2);
+    socket.processPacket(encoded2);
 
     // 应该只被调用一次
     expect(callCount).toBe(1);
@@ -184,14 +184,14 @@ describe("Socket.IO Socket", () => {
       data: ["test-event-1", {}],
     };
     const encoded1 = encodePacket(packet1);
-    (socket as any).handleSocketIOPacket(encoded1);
+    socket.processPacket(encoded1);
 
     const packet2 = {
       type: SocketIOPacketType.EVENT,
       data: ["test-event-2", {}],
     };
     const encoded2 = encodePacket(packet2);
-    (socket as any).handleSocketIOPacket(encoded2);
+    socket.processPacket(encoded2);
 
     expect(callCount1).toBe(0);
     expect(callCount2).toBe(1);
@@ -204,7 +204,7 @@ describe("Socket.IO Socket", () => {
       data: ["test-event-2", {}],
     };
     const encoded3 = encodePacket(packet3);
-    (socket as any).handleSocketIOPacket(encoded3);
+    socket.processPacket(encoded3);
 
     expect(callCount2).toBe(1); // 不应该再增加
 
@@ -253,7 +253,7 @@ describe("Socket.IO Socket", () => {
       data: ["test-event", {}],
     };
     const encoded = encodePacket(socketIOPacket);
-    (socket as any).handleSocketIOPacket(encoded);
+    socket.processPacket(encoded);
     await delay(100);
 
     // 验证确认被发送
@@ -296,7 +296,7 @@ describe("Socket.IO Socket", () => {
       data: "server disconnect",
     };
     const encoded = encodePacket(socketIOPacket);
-    (socket as any).handleSocketIOPacket(encoded);
+    socket.processPacket(encoded);
 
     expect(disconnectEventFired).toBe(true);
     expect(socket.connected).toBe(false);

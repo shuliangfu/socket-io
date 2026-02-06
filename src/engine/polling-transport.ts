@@ -242,4 +242,12 @@ export class PollingTransport extends Transport {
   hasPendingPoll(): boolean {
     return this.currentPollResolve !== null;
   }
+
+  /**
+   * 检查是否有待发送的数据包
+   * 供 Server 判断是否应跳过批量处理、立即响应
+   */
+  hasPendingPackets(): boolean {
+    return this.pendingPackets.length > 0;
+  }
 }
