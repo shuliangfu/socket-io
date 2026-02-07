@@ -445,6 +445,14 @@ See [TEST_REPORT.md](./TEST_REPORT.md)
 
 ---
 
+## 📋 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for full history.
+
+**Latest (v1.0.1)**: Fixed Client auto-reconnect when user explicitly calls `disconnect()` (e.g., in SPA navigation cleanup). Prevents duplicate connections and excessive polling when switching pages.
+
+---
+
 ## 🤝 Contributing
 
 Issues and Pull Requests welcome!
