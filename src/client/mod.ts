@@ -81,6 +81,8 @@ export class Client {
   private messageQueue: ClientMessageQueue;
   /** 加密管理器（可选） */
   private encryptionManager?: EncryptionManager;
+  /** 是否由用户主动断开（disconnect 调用），若为 true 则 disconnect 事件不触发自动重连 */
+  private intentionalDisconnect = false;
 
   /**
    * 创建 Socket.IO 客户端实例
@@ -180,6 +182,8 @@ export class Client {
       return;
     }
 
+    this.intentionalDisconnect = false;
+
     try {
       // 选择传输方式
       const transportType = this.options
@@ -220,6 +224,8 @@ export class Client {
 
       this.socket.on("disconnect", (reason) => {
         this.triggerEvent("disconnect", reason);
+        // 用户主动 disconnect 时不应触发自动重连
+        if (this.intentionalDisconnect) return;
         // 如果启用自动重连，尝试重连
         if (this.options.autoReconnect && !this.reconnecting) {
           this.scheduleReconnect();
@@ -279,6 +285,7 @@ export class Client {
    * ```
    */
   disconnect(): void {
+    this.intentionalDisconnect = true;
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
