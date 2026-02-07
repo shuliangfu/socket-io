@@ -341,8 +341,8 @@ describe("Socket.IO 客户端", () => {
       autoConnect: true,
       transports: ["polling"],
       autoReconnect: true,
-      reconnectionDelay: 200, // 缩短重连延迟，加快测试
-      reconnectionDelayMax: 500,
+      reconnectionDelay: 100, // 缩短重连延迟，加快测试
+      reconnectionDelayMax: 300,
     });
 
     let connectErrorCount = 0;
@@ -360,8 +360,9 @@ describe("Socket.IO 客户端", () => {
       connected = true;
     });
 
-    // 等待首次连接失败（无服务器）
-    await delay(500);
+    // 等待首次连接失败 + 至少一次 reconnecting 事件
+    // SmartReconnection 首次延迟约 baseDelay*2 + jitter(0-1000ms)，需等待足够长时间
+    await delay(2000);
 
     // 启动服务器，供后续重连成功
     const server = new Server({
