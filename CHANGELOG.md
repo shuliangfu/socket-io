@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.2] - 2026-02-07
+
+### Fixed
+
+- **CompressionManager**: Fixed TypeScript error `TS2315: Type 'Uint8Array' is not generic` when passing buffer to `WritableStreamDefaultWriter.write()`. Replaced invalid `Uint8Array<ArrayBuffer>` assertion with `BufferSource` for cross-environment compatibility (Deno/Bun, strict type check).
+
+---
+
 ## [1.0.1] - 2026-02-07
 
 ### Fixed
