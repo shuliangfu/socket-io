@@ -753,7 +753,7 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG-zh.md](./CHANGELOG-zh.md)。
 
-**最新 (v1.0.1)**：修复用户主动调用 `disconnect()` 时仍触发自动重连的问题（如 SPA 页面切换时的清理）。避免切换页面时出现重复连接和多余轮询请求。
+**最新 (v1.0.2)**：修复 CompressionManager 类型断言（`Uint8Array<ArrayBuffer>` → `BufferSource`），解决严格 TypeScript 环境下的 TS2315 兼容性问题。
 
 ---
 

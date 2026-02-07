@@ -6,6 +6,14 @@
 
 ---
 
+## [1.0.2] - 2026-02-07
+
+### 修复
+
+- **CompressionManager**：修复向 `WritableStreamDefaultWriter.write()` 传入 buffer 时的 TypeScript 错误 `TS2315: Type 'Uint8Array' is not generic`。将无效的 `Uint8Array<ArrayBuffer>` 断言改为 `BufferSource`，以兼容不同环境的严格类型检查（Deno/Bun）。
+
+---
+
 ## [1.0.1] - 2026-02-07
 
 ### 修复
