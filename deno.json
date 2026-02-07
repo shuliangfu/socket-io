@@ -1,10 +1,11 @@
 {
   "name": "@dreamer/socket-io",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
-    "./client": "./src/client/mod.ts"
+    "./client": "./src/client/mod.ts",
+    "./types": "./src/types.ts"
   },
   "publish": {
     "include": [
