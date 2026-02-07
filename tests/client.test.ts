@@ -3,6 +3,7 @@
  * 测试客户端连接、事件系统、重连机制等
  */
 
+import { platform } from "@dreamer/runtime-adapter";
 import { describe, expect, it } from "@dreamer/test";
 import { Client } from "../src/client/mod.ts";
 import { Server } from "../src/mod.ts";
@@ -379,8 +380,13 @@ describe("Socket.IO 客户端", () => {
       await delay(100);
     }
 
-    // 核心断言：最终连接成功。connectErrorCount/reconnecting 在 Windows CI 上可能因时序不同而为 0，不作为硬性断言
+    // 核心断言：最终连接成功
     expect(connected).toBe(true);
+    // Mac/Linux 额外断言：至少有 1 次连接失败和重连（Windows CI 上因时序可能为 0，故跳过）
+    if (platform() !== "windows") {
+      expect(connectErrorCount).toBeGreaterThanOrEqual(1);
+      expect(reconnectingCount).toBeGreaterThanOrEqual(1);
+    }
 
     client.disconnect();
     await delay(300);
