@@ -122,8 +122,8 @@ export class CompressionManager {
       } else {
         bufferToWrite = new Uint8Array(input);
       }
-      // 类型断言：确保 TypeScript 知道这是基于 ArrayBuffer 的 Uint8Array
-      await writer.write(bufferToWrite as Uint8Array<ArrayBuffer>);
+      // bufferToWrite 已确保是基于 ArrayBuffer 的 Uint8Array，使用 BufferSource 断言以兼容严格类型检查
+      await writer.write(bufferToWrite as BufferSource);
       await writer.close();
 
       // 读取压缩后的数据
@@ -197,8 +197,8 @@ export class CompressionManager {
       } else {
         bufferToWrite = new Uint8Array(data);
       }
-      // 类型断言：确保 TypeScript 知道这是基于 ArrayBuffer 的 Uint8Array
-      await writer.write(bufferToWrite as Uint8Array<ArrayBuffer>);
+      // bufferToWrite 已确保是基于 ArrayBuffer 的 Uint8Array，使用 BufferSource 断言以兼容严格类型检查
+      await writer.write(bufferToWrite as BufferSource);
       await writer.close();
 
       // 读取解压后的数据
