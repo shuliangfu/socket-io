@@ -753,7 +753,7 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG-zh.md](./CHANGELOG-zh.md)。
 
-**最新 (v1.0.2)**：修复 CompressionManager 类型断言（`Uint8Array<ArrayBuffer>` → `BufferSource`），解决严格 TypeScript 环境下的 TS2315 兼容性问题。
+**最新 (v1.0.3)**：新增 `./types` 导出；修复 esbuild resolver 打包客户端代码时无法解析 `EnginePacketType`、`SocketIOPacketType` 的问题。
 
 ---
 
