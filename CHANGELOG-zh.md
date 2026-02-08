@@ -6,6 +6,14 @@
 
 ---
 
+## [1.0.3] - 2026-02-07
+
+### 新增
+
+- **导出**：新增 `./types` 导出，映射到 `./src/types.ts`，支持直接导入 `EnginePacketType` 与 `SocketIOPacketType`。修复 esbuild resolver 在打包客户端代码时解析 JSR 包内相对路径导入失败的问题（如 client 模块中的 `../types.ts`）。
+
+---
+
 ## [1.0.2] - 2026-02-07
 
 ### 修复

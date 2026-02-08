@@ -449,7 +449,7 @@ See [TEST_REPORT.md](./TEST_REPORT.md)
 
 See [CHANGELOG.md](./CHANGELOG.md) for full history.
 
-**Latest (v1.0.2)**: Fixed CompressionManager type assertion (`Uint8Array<ArrayBuffer>` → `BufferSource`) for TS2315 compatibility in strict TypeScript environments.
+**Latest (v1.0.3)**: Added `./types` export; fixes esbuild resolver failing to resolve `EnginePacketType` and `SocketIOPacketType` when bundling client code.
 
 ---
 

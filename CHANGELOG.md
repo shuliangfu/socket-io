@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.3] - 2026-02-07
+
+### Added
+
+- **Exports**: Added `./types` export mapping to `./src/types.ts` for direct import of `EnginePacketType` and `SocketIOPacketType`. Fixes esbuild resolver failing to resolve relative path imports within JSR package when bundling client code (e.g. `../types.ts` from client modules).
+
+---
+
 ## [1.0.2] - 2026-02-07
 
 ### Fixed
