@@ -95,7 +95,7 @@ export class BatchHeartbeatManager {
    * 批量发送心跳
    */
   private batchPing(): void {
-    const sockets = Array.from(this.sockets).filter(s => s.isConnected());
+    const sockets = Array.from(this.sockets).filter((s) => s.isConnected());
 
     if (sockets.length === 0) {
       return;

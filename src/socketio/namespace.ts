@@ -79,8 +79,11 @@ export class Namespace {
     this.messageQueue = new MessageQueue(10000, 100, {
       logger: this.logger,
       tr: this.server
-        ? (key: string, fallback: string, params?: Record<string, string | number | boolean>) =>
-          this.server!.tr(key, fallback, params)
+        ? (
+          key: string,
+          fallback: string,
+          params?: Record<string, string | number | boolean>,
+        ) => this.server!.tr(key, fallback, params)
         : undefined,
     });
   }
@@ -170,11 +173,11 @@ export class Namespace {
     for (const middleware of this.middlewares) {
       await new Promise<void>((resolve, reject) => {
         const socket = new SocketIOSocket(
-      engineSocket,
-      this.name,
-      this.logger,
-      this.server,
-    );
+          engineSocket,
+          this.name,
+          this.logger,
+          this.server,
+        );
         middleware(socket, (error) => {
           if (error) {
             reject(error);

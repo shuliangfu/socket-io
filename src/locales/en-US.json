@@ -1,0 +1,58 @@
+{
+  "log": {
+    "socketio": {
+      "pollingBatchFailed": "Polling batch failed (sid: {sid})",
+      "serverRunning": "Socket.IO server running at http://{host}:{port}{path}",
+      "requestReceived": "Request received: {method} {path}{search}",
+      "pathMismatch": "Path does not match pathPrefix, returning 404",
+      "corsPreflight": "CORS preflight OPTIONS, returning 200",
+      "parsePath": "Parse path: transport={transport}, sid={sid}",
+      "pollingEnter": "Enter polling handling sid={sid}",
+      "pollingReturn": "Polling return: {status}",
+      "websocketEnter": "Enter WebSocket handling sid={sid}",
+      "websocketReturn": "WebSocket return: {status}",
+      "handshakeStart": "Handshake (generate sid, create polling transport)",
+      "handshakeReturn": "Handshake return: {status}",
+      "noMatchBranch": "No matching branch (not handshake/polling/websocket), returning 404",
+      "upgradeFailed": "WebSocket upgrade failed",
+      "unsupportedEvent": "Unsupported event: {event}",
+      "packetProcessError": "Socket.IO packet processing error",
+      "eventListenerError": "Event listener error ({event})",
+      "adapterRoomBroadcastFailed": "Adapter room broadcast failed",
+      "exceptNeedsToOrIn": "[SocketIOSocket] except() must be used with to() or in()",
+      "adapterBroadcastFailed": "Adapter broadcast failed",
+      "streamParseError": "Stream parse error"
+    },
+    "socketioAdapter": {
+      "redisNeedConnectionOrClient": "RedisAdapter requires connection config or client instance",
+      "redisCannotCreateClient": "Cannot create Redis client: {error}. Ensure redis package is installed (npm install redis)",
+      "redisCannotCreatePubSubClient": "Cannot create Redis Pub/Sub client: {error}. Ensure redis package is installed (npm install redis)",
+      "redisParseMessageFailed": "Redis message parse error",
+      "mongoClientNotInstalled": "MongoDB client not installed. Install mongodb package: deno add npm:mongodb",
+      "mongoConnectFailedReplicaSet": "MongoDB connection failed (replica set): {error}\nHint: If using single-node replica set, add replicaSet to config",
+      "mongoConnectFailed": "MongoDB connection failed: {error}",
+      "mongoDatabaseNotConnected": "MongoDB database not connected",
+      "mongoCreateIndexFailed": "Create index failed (may already exist)",
+      "mongoChangeStreamsUnavailable": "Change Streams unavailable, falling back to polling",
+      "mongoPollingError": "Polling message error"
+    },
+    "socketioEngine": {
+      "eventListenerError": "Engine.IO Socket event listener error",
+      "onCloseCallbackError": "EngineSocket onClose callback error"
+    }
+  },
+  "errors": {
+    "emptyPacket": "Empty packet",
+    "invalidPacketLength": "Invalid packet length: {length}",
+    "packetLengthOutOfRange": "Packet length out of range",
+    "packetSizeExceeded": "Packet size exceeded: {receivedLength} > {maxPacketSize}",
+    "encryptFailed": "Encryption failed: {error}",
+    "decryptFailed": "Decryption failed: {error}",
+    "keyLengthMustBe16Or32": "Key length must be 16 (AES-128) or 32 (AES-256) bytes, got {length}",
+    "algorithmKeyLengthMismatch": "Algorithm {algorithm} requires {requiredLength}-byte key, got {currentLength}"
+  },
+  "warnings": {
+    "wasmInitFailed": "WebAssembly init failed, using JavaScript implementation",
+    "wasmUnavailable": "WebAssembly unavailable"
+  }
+}

@@ -18,7 +18,9 @@ export class WebSocketTransport extends Transport {
   /** WebSocket 连接 */
   private ws: WebSocket;
   /** WebSocket 批量发送器 */
-  private static batchSender: WebSocketBatchSender = new WebSocketBatchSender(100);
+  private static batchSender: WebSocketBatchSender = new WebSocketBatchSender(
+    100,
+  );
   /** 压缩管理器（可选） */
   private compressionManager?: CompressionManager;
   /** 加密管理器（可选） */
@@ -66,19 +68,26 @@ export class WebSocketTransport extends Transport {
         let data: string;
 
         // 处理二进制消息（可能是压缩的）
-        if (event.data instanceof ArrayBuffer || event.data instanceof Uint8Array) {
+        if (
+          event.data instanceof ArrayBuffer || event.data instanceof Uint8Array
+        ) {
           const bytes = event.data instanceof ArrayBuffer
             ? new Uint8Array(event.data)
             : event.data;
 
           // 检查是否压缩
-          if (this.compressionManager && this.compressionManager.isCompressed(bytes)) {
+          if (
+            this.compressionManager &&
+            this.compressionManager.isCompressed(bytes)
+          ) {
             data = await this.compressionManager.decompress(bytes);
           } else {
             data = new TextDecoder().decode(bytes);
           }
         } else {
-          data = typeof event.data === "string" ? event.data : String(event.data);
+          data = typeof event.data === "string"
+            ? event.data
+            : String(event.data);
         }
 
         // 如果启用加密，尝试解密

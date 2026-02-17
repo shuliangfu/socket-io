@@ -35,7 +35,10 @@ export interface SocketIOAdapter {
    * @param serverId 服务器 ID
    * @param sockets 本地 Socket 映射
    */
-  init(serverId: string, sockets: Map<string, SocketIOSocket>): Promise<void> | void;
+  init(
+    serverId: string,
+    sockets: Map<string, SocketIOSocket>,
+  ): Promise<void> | void;
 
   /**
    * 关闭适配器

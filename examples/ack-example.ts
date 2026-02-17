@@ -56,36 +56,39 @@ server.on("connection", (socket) => {
   });
 
   // 处理带确认的计算任务
-  socket.on<{ a: number; b: number; operation: string }>("calculate", (data, callback?) => {
-    if (!data) return;
-    console.log("收到计算请求:", data);
+  socket.on<{ a: number; b: number; operation: string }>(
+    "calculate",
+    (data, callback?) => {
+      if (!data) return;
+      console.log("收到计算请求:", data);
 
-    let result: number;
-    switch (data.operation) {
-      case "add":
-        result = data.a + data.b;
-        break;
-      case "subtract":
-        result = data.a - data.b;
-        break;
-      case "multiply":
-        result = data.a * data.b;
-        break;
-      case "divide":
-        result = data.b !== 0 ? data.a / data.b : NaN;
-        break;
-      default:
-        result = NaN;
-    }
+      let result: number;
+      switch (data.operation) {
+        case "add":
+          result = data.a + data.b;
+          break;
+        case "subtract":
+          result = data.a - data.b;
+          break;
+        case "multiply":
+          result = data.a * data.b;
+          break;
+        case "divide":
+          result = data.b !== 0 ? data.a / data.b : NaN;
+          break;
+        default:
+          result = NaN;
+      }
 
-    // 发送确认响应
-    if (callback) {
-      callback({
-        success: !isNaN(result),
-        result,
-      });
-    }
-  });
+      // 发送确认响应
+      if (callback) {
+        callback({
+          success: !isNaN(result),
+          result,
+        });
+      }
+    },
+  );
 });
 
 // 启动服务器

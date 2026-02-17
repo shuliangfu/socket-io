@@ -30,7 +30,7 @@
  * ```
  */
 
-import { EncryptionManager } from "../encryption/encryption-manager.ts";
+import { EncryptionManager } from "./encryption-manager.ts";
 import { ClientEventListener, ClientOptions, TransportType } from "../types.ts";
 import { ClientMessageQueue } from "./message-queue.ts";
 import { ClientPollingTransport } from "./polling-transport.ts";

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Socket.IO logger、debug、t 翻译功能测试
- * 测试 Server 的 logger 注入、debug 开关、tr 翻译函数
+ * @fileoverview Socket.IO logger、debug、i18n 翻译功能测试
+ * 测试 Server 的 logger 注入、debug 开关、tr 翻译函数（包内 i18n）
  */
 
 import { describe, expect, it } from "@dreamer/test";
@@ -38,7 +38,7 @@ function createMockLogger(): MockLogger {
   return mock as unknown as MockLogger;
 }
 
-describe("Socket.IO logger、debug、t 翻译", () => {
+describe("Socket.IO logger、debug、i18n 翻译", () => {
   describe("logger 注入", () => {
     it("未传入 logger 时应使用默认 logger 创建实例", () => {
       const server = new Server();
@@ -46,25 +46,36 @@ describe("Socket.IO logger、debug、t 翻译", () => {
       expect(server.options.path).toBe("/socket.io/");
     });
 
-    it("传入自定义 logger 时应在 listen 时使用该 logger 输出 info", async () => {
-      const mockLogger = createMockLogger();
-      const testPort = getAvailablePort();
-      const server = new Server({
-        port: testPort,
-        path: "/socket.io/",
-        logger: mockLogger,
-      });
+    it(
+      "传入自定义 logger 时应在 listen 时使用该 logger 输出 info",
+      async () => {
+        const mockLogger = createMockLogger();
+        const testPort = getAvailablePort();
+        const server = new Server({
+          port: testPort,
+          path: "/socket.io/",
+          logger: mockLogger,
+        });
 
-      await server.listen();
-      await delay(200);
+        await server.listen();
+        await delay(200);
 
-      expect(mockLogger.infoCalls.length).toBeGreaterThanOrEqual(1);
-      expect(mockLogger.infoCalls.some((m) => m.includes("Socket.IO"))).toBe(true);
-      expect(mockLogger.infoCalls.some((m) => m.includes("运行"))).toBe(true);
+        expect(mockLogger.infoCalls.length).toBeGreaterThanOrEqual(1);
+        expect(mockLogger.infoCalls.some((m) => m.includes("Socket.IO"))).toBe(
+          true,
+        );
+        // 中文 "运行" 或英文 "running"（随 locale 变化）
+        expect(
+          mockLogger.infoCalls.some((m) =>
+            m.includes("运行") || m.includes("running")
+          ),
+        ).toBe(true);
 
-      await server.close();
-      await delay(100);
-    }, { sanitizeOps: false, sanitizeResources: false });
+        await server.close();
+        await delay(100);
+      },
+      { sanitizeOps: false, sanitizeResources: false },
+    );
   });
 
   describe("debug 开关", () => {
@@ -109,7 +120,9 @@ describe("Socket.IO logger、debug、t 翻译", () => {
       await delay(200);
 
       expect(mockLogger.debugCalls.length).toBeGreaterThanOrEqual(1);
-      expect(mockLogger.debugCalls.some((m) => m.includes("[Socket.IO]"))).toBe(true);
+      expect(mockLogger.debugCalls.some((m) => m.includes("[Socket.IO]"))).toBe(
+        true,
+      );
 
       await server.close();
       await delay(100);
@@ -117,55 +130,41 @@ describe("Socket.IO logger、debug、t 翻译", () => {
   });
 
   describe("tr 翻译函数", () => {
-    it("未传入 t 时 tr() 应返回 fallback", () => {
+    it("已知 key 时 tr() 应返回包内 i18n 翻译（zh 或 en）", () => {
       const server = new Server();
-      const result = server.tr("log.socketio.pathMismatch", "路径不匹配 pathPrefix，返回 404", {
-        path: "/other",
-      });
-      expect(result).toBe("路径不匹配 pathPrefix，返回 404");
+      const result = server.tr(
+        "log.socketio.pathMismatch",
+        "路径不匹配 pathPrefix，返回 404",
+        { path: "/other" },
+      );
+      // 包内 i18n 根据 locale 返回中文或英文
+      const expected = [
+        "路径不匹配 pathPrefix，返回 404",
+        "Path does not match pathPrefix, returning 404",
+      ];
+      expect(expected).toContain(result);
     });
 
-    it("传入 t 且返回有效翻译时 tr() 应返回翻译结果", () => {
-      const server = new Server({
-        t: (key, params) => `[EN] ${key} path=${params?.path ?? ""}`,
-      });
-      const result = server.tr("log.socketio.pathMismatch", "fallback", { path: "/x" });
-      expect(result).toBe("[EN] log.socketio.pathMismatch path=/x");
+    it("未知 key 时 tr() 应返回 fallback", () => {
+      const server = new Server();
+      const result = server.tr("unknown.key.xyz", "my fallback", {});
+      expect(result).toBe("my fallback");
     });
 
-    it("t 返回 undefined 时 tr() 应返回 fallback", () => {
-      const server = new Server({
-        t: () => undefined,
-      });
-      const result = server.tr("log.socketio.pathMismatch", "fallback", { path: "/x" });
-      expect(result).toBe("fallback");
-    });
-
-    it("t 返回 key 本身时 tr() 应返回 fallback（视为未翻译）", () => {
-      const server = new Server({
-        t: (key) => key,
-      });
-      const result = server.tr("log.socketio.pathMismatch", "fallback", { path: "/x" });
-      expect(result).toBe("fallback");
-    });
-
-    it("t 支持 params 参数替换", () => {
-      const server = new Server({
-        t: (key, params) =>
-          params ? `method=${params.method} path=${params.path}` : key,
-      });
+    it("tr() 支持 params 参数替换", () => {
+      const server = new Server();
       const result = server.tr("log.socketio.requestReceived", "fallback", {
         method: "GET",
         path: "/socket.io/",
         search: "",
       });
-      expect(result).toContain("method=GET");
-      expect(result).toContain("path=/socket.io/");
+      expect(result).toContain("GET");
+      expect(result).toContain("/socket.io/");
     });
   });
 
-  describe("logger + debug + t 组合", () => {
-    it("debug=true 且传入 t 时，debug 日志应使用翻译后的文本", async () => {
+  describe("logger + debug 组合", () => {
+    it("debug=true 时，debug 日志应使用包内 i18n 翻译后的文本", async () => {
       const mockLogger = createMockLogger();
       const testPort = getAvailablePort();
       const server = new Server({
@@ -173,7 +172,6 @@ describe("Socket.IO logger、debug、t 翻译", () => {
         path: "/socket.io/",
         logger: mockLogger,
         debug: true,
-        t: (key) => `[i18n]${key}`,
       });
 
       await server.listen();
@@ -183,11 +181,13 @@ describe("Socket.IO logger、debug、t 翻译", () => {
       await fetch(`http://localhost:${testPort}/other`);
       await delay(100);
 
-      const pathMismatchLog = mockLogger.debugCalls.find((m) =>
-        m.includes("log.socketio.pathMismatch") || m.includes("[i18n]log.socketio")
-      );
       expect(mockLogger.debugCalls.length).toBeGreaterThanOrEqual(1);
-      expect(mockLogger.debugCalls.some((m) => m.includes("[i18n]"))).toBe(true);
+      // 应包含 [Socket.IO] 及 pathMismatch 的翻译（中或英）
+      const hasPathMismatch = mockLogger.debugCalls.some((m) =>
+        m.includes("[Socket.IO]") &&
+        (m.includes("路径不匹配") || m.includes("Path does not match"))
+      );
+      expect(hasPathMismatch).toBe(true);
 
       await server.close();
       await delay(100);

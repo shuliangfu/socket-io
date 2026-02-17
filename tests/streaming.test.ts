@@ -2,8 +2,11 @@
  * @fileoverview 流式解析器测试
  */
 
-import { describe, it, expect } from "@dreamer/test";
-import { StreamParser, StreamPacketProcessor } from "../src/streaming/stream-parser.ts";
+import { describe, expect, it } from "@dreamer/test";
+import {
+  StreamPacketProcessor,
+  StreamParser,
+} from "../src/streaming/stream-parser.ts";
 
 describe("流式解析器", () => {
   it("应该创建流式解析器", () => {
@@ -55,7 +58,9 @@ describe("流式解析器", () => {
 
     // 创建大数据包
     const largeData = "x".repeat(10000);
-    const packetData = encoder.encode(`4${JSON.stringify({ data: largeData })}`);
+    const packetData = encoder.encode(
+      `4${JSON.stringify({ data: largeData })}`,
+    );
     const packets = parser.addChunk(packetData);
 
     expect(Array.isArray(packets)).toBe(true);
@@ -67,7 +72,9 @@ describe("流式解析器", () => {
 
     // 创建超过限制的数据包
     const largeData = "x".repeat(200);
-    const packetData = encoder.encode(`4${JSON.stringify({ data: largeData })}`);
+    const packetData = encoder.encode(
+      `4${JSON.stringify({ data: largeData })}`,
+    );
 
     try {
       parser.addChunk(packetData);

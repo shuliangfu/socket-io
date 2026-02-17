@@ -80,9 +80,9 @@ client.emit("chat-message", { text: "Hello" }, (response) => {
 const client = new Client({
   url: "http://localhost:3000",
   autoReconnect: true,
-  reconnectionDelay: 1000,        // 初始重连延迟 1 秒
-  reconnectionDelayMax: 5000,     // 最大重连延迟 5 秒
-  reconnectionAttempts: 10,       // 最多重连 10 次
+  reconnectionDelay: 1000, // 初始重连延迟 1 秒
+  reconnectionDelayMax: 5000, // 最大重连延迟 5 秒
+  reconnectionAttempts: 10, // 最多重连 10 次
 });
 ```
 
@@ -140,11 +140,13 @@ client.removeAllListeners();
 Socket.IO 客户端类。
 
 **构造函数**：
+
 ```typescript
 new Client(options: ClientOptions)
 ```
 
 **选项**：
+
 - `url: string`: 服务器 URL（必需）
 - `namespace?: string`: 命名空间（默认："/"）
 - `query?: Record<string, string>`: 查询参数
@@ -153,21 +155,25 @@ new Client(options: ClientOptions)
 - `reconnectionDelay?: number`: 重连延迟（默认：1000ms）
 - `reconnectionDelayMax?: number`: 最大重连延迟（默认：5000ms）
 - `reconnectionAttempts?: number`: 重连尝试次数（默认：Infinity）
-- `transports?: TransportType[]`: 允许的传输方式（默认：["websocket", "polling"]）
+- `transports?: TransportType[]`: 允许的传输方式（默认：["websocket",
+  "polling"]）
 - `timeout?: number`: 超时时间（默认：20000ms）
 
 **方法**：
+
 - `connect(): Promise<void>`: 连接到服务器
 - `disconnect(): void`: 断开连接
 - `emit(event: string, data?: any, callback?: Function): void`: 发送事件
 - `on(event: string, listener: ClientEventListener): void`: 监听事件
 - `off(event: string, listener?: ClientEventListener): void`: 移除监听器
 - `once(event: string, listener: ClientEventListener): void`: 只监听一次事件
-- `removeAllListeners(event?: string): this`: 移除所有事件监听器（或指定事件的监听器）
+- `removeAllListeners(event?: string): this`:
+  移除所有事件监听器（或指定事件的监听器）
 - `getId(): string`: 获取 Socket ID
 - `isConnected(): boolean`: 检查是否已连接
 
 **事件**：
+
 - `connect`: 连接成功
 - `disconnect`: 断开连接
 - `connect_error`: 连接错误

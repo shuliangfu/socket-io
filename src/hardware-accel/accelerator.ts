@@ -3,6 +3,8 @@
  * 使用 WebAssembly 和 SIMD 指令优化计算密集型操作
  */
 
+import { $t } from "../i18n.ts";
+
 /**
  * 硬件加速器配置
  */
@@ -38,7 +40,7 @@ export class HardwareAccelerator {
     // 尝试初始化 WebAssembly（异步）
     if (this.enableWasm) {
       this.initWasm().catch((error) => {
-        console.warn("WebAssembly 初始化失败，将使用 JavaScript 实现:", error);
+        console.warn($t("warnings.wasmInitFailed"), error);
       });
     }
   }
@@ -51,8 +53,14 @@ export class HardwareAccelerator {
       // 创建一个简单的 WebAssembly 模块用于批量数据处理
       // 这里使用内联 WASM 代码
       const wasmCode = new Uint8Array([
-        0x00, 0x61, 0x73, 0x6d, // WASM 魔数
-        0x01, 0x00, 0x00, 0x00, // 版本 1
+        0x00,
+        0x61,
+        0x73,
+        0x6d, // WASM 魔数
+        0x01,
+        0x00,
+        0x00,
+        0x00, // 版本 1
         // 这里是一个简化的 WASM 模块
         // 实际实现中可以使用更复杂的 WASM 代码
       ]);
@@ -64,7 +72,7 @@ export class HardwareAccelerator {
       });
     } catch (error) {
       // WebAssembly 不可用，使用 JavaScript 实现
-      console.warn("WebAssembly 不可用:", error);
+      console.warn($t("warnings.wasmUnavailable"), error);
     }
   }
 
@@ -106,7 +114,8 @@ export class HardwareAccelerator {
       // 批量处理（利用 CPU 缓存）
       for (let j = 0; j < bytes.length; j++) {
         hash ^= bytes[j];
-        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) +
+          (hash << 24);
       }
 
       results[i] = hash;

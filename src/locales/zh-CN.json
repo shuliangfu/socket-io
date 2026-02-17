@@ -1,0 +1,58 @@
+{
+  "log": {
+    "socketio": {
+      "pollingBatchFailed": "轮询批量处理失败 (sid: {sid})",
+      "serverRunning": "Socket.IO 服务器运行在 http://{host}:{port}{path}",
+      "requestReceived": "收到请求: {method} {path}{search}",
+      "pathMismatch": "路径不匹配 pathPrefix，返回 404",
+      "corsPreflight": "CORS 预检 OPTIONS，返回 200",
+      "parsePath": "解析路径: transport={transport}, sid={sid}",
+      "pollingEnter": "进入轮询处理 sid={sid}",
+      "pollingReturn": "轮询返回: {status}",
+      "websocketEnter": "进入 WebSocket 处理 sid={sid}",
+      "websocketReturn": "WebSocket 返回: {status}",
+      "handshakeStart": "执行握手（生成 sid、创建轮询传输）",
+      "handshakeReturn": "握手返回: {status}",
+      "noMatchBranch": "未匹配到处理分支（非握手/轮询/websocket），返回 404",
+      "upgradeFailed": "WebSocket 升级失败",
+      "unsupportedEvent": "不支持的事件: {event}",
+      "packetProcessError": "Socket.IO 数据包处理错误",
+      "eventListenerError": "事件监听器错误 ({event})",
+      "adapterRoomBroadcastFailed": "适配器房间广播失败",
+      "exceptNeedsToOrIn": "[SocketIOSocket] except() 需要配合 to() 或 in() 使用",
+      "adapterBroadcastFailed": "适配器全局广播失败",
+      "streamParseError": "流式解析错误"
+    },
+    "socketioAdapter": {
+      "redisNeedConnectionOrClient": "RedisAdapter 需要提供 connection 配置或 client 实例",
+      "redisCannotCreateClient": "无法创建 Redis 客户端: {error}。请确保已安装 redis 包（npm install redis）",
+      "redisCannotCreatePubSubClient": "无法创建 Redis Pub/Sub 客户端: {error}。请确保已安装 redis 包（npm install redis）",
+      "redisParseMessageFailed": "Redis 消息解析错误",
+      "mongoClientNotInstalled": "MongoDB 客户端未安装。请安装 mongodb 包：deno add npm:mongodb",
+      "mongoConnectFailedReplicaSet": "连接 MongoDB 失败（副本集相关）: {error}\n提示：如果使用单节点副本集，请在配置中添加 replicaSet 参数",
+      "mongoConnectFailed": "连接 MongoDB 失败: {error}",
+      "mongoDatabaseNotConnected": "MongoDB 数据库未连接",
+      "mongoCreateIndexFailed": "创建索引失败（可能已存在）",
+      "mongoChangeStreamsUnavailable": "Change Streams 不可用，降级到轮询模式",
+      "mongoPollingError": "轮询消息错误"
+    },
+    "socketioEngine": {
+      "eventListenerError": "Engine.IO Socket 事件监听器错误",
+      "onCloseCallbackError": "EngineSocket onClose 回调错误"
+    }
+  },
+  "errors": {
+    "emptyPacket": "空数据包",
+    "invalidPacketLength": "无效的数据包长度: {length}",
+    "packetLengthOutOfRange": "数据包长度超出范围",
+    "packetSizeExceeded": "数据包大小超过限制: {receivedLength} > {maxPacketSize}",
+    "encryptFailed": "加密失败: {error}",
+    "decryptFailed": "解密失败: {error}",
+    "keyLengthMustBe16Or32": "密钥长度必须为 16 字节（AES-128）或 32 字节（AES-256），当前长度：{length}",
+    "algorithmKeyLengthMismatch": "算法 {algorithm} 需要 {requiredLength} 字节密钥，当前密钥长度：{currentLength}"
+  },
+  "warnings": {
+    "wasmInitFailed": "WebAssembly 初始化失败，将使用 JavaScript 实现",
+    "wasmUnavailable": "WebAssembly 不可用"
+  }
+}

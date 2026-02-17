@@ -5,21 +5,25 @@
 
 import { describe, expect, it } from "@dreamer/test";
 import {
-  Server,
-  EngineSocket,
-  SocketIOSocket,
-  PollingTransport,
-  BatchHeartbeatManager,
-  PollingBatchHandler,
   AdaptivePollingTimeout,
-  MessageQueue,
+  BatchHeartbeatManager,
   CompressionManager,
+  EngineSocket,
+  MessageQueue,
+  MongoDBAdapter,
+  PollingBatchHandler,
+  PollingTransport,
+  RedisAdapter,
+  Server,
+  SocketIOSocket,
   StreamPacketProcessor,
   WebSocketBatchSender,
-  RedisAdapter,
-  MongoDBAdapter,
 } from "../src/mod.ts";
-import { Handshake, EnginePacketType, SocketIOPacketType } from "../src/types.ts";
+import {
+  EnginePacketType,
+  Handshake,
+  SocketIOPacketType,
+} from "../src/types.ts";
 import { delay, getAvailablePort } from "./test-utils.ts";
 
 /** 创建 mock EngineSocket */
@@ -37,7 +41,9 @@ function createMockEngineSocket(id: string): EngineSocket {
     on: () => {},
     off: () => {},
   };
-  engineSocket.setTransport(mockTransport as unknown as import("../src/engine/transport.ts").Transport);
+  engineSocket.setTransport(
+    mockTransport as unknown as import("../src/engine/transport.ts").Transport,
+  );
   return engineSocket;
 }
 
@@ -74,7 +80,11 @@ describe("2.2 错误信息国际化 (tr)", () => {
 
   describe("CompressionManager tr 参数", () => {
     it("传入 tr 时，压缩失败应使用 tr 翻译", async () => {
-      const tr = (key: string) => (key === "log.socketio.compressionFailed" ? "[i18n]compressionFailed" : key);
+      const tr = (
+        key: string,
+      ) => (key === "log.socketio.compressionFailed"
+        ? "[i18n]compressionFailed"
+        : key);
       const manager = new CompressionManager({
         logger: undefined,
         tr,
@@ -92,27 +102,26 @@ describe("2.2 错误信息国际化 (tr)", () => {
 
   describe("MessageQueue tr 参数", () => {
     it("传入 tr 时，MessageQueue 应正常创建", () => {
-      const tr = (key: string, fallback: string) => (key === "log.socketio.messageSendError" ? "[i18n]msg" : fallback);
+      const tr = (
+        key: string,
+        fallback: string,
+      ) => (key === "log.socketio.messageSendError" ? "[i18n]msg" : fallback);
       const queue = new MessageQueue(100, 10, { tr });
       expect(queue).toBeTruthy();
       expect(queue.size).toBe(0);
     });
   });
 
-  describe("Server t 选项传递到子模块", () => {
-    it("Server 的 t 应通过 tr 传递给子模块", async () => {
-      const trCalls: string[] = [];
+  describe("Server lang 选项传递到 tr", () => {
+    it("Server 的 lang 应在 tr() 中生效", () => {
       const server = new Server({
-        port: getAvailablePort(),
         path: "/socket.io/",
-        t: (key) => {
-          trCalls.push(key);
-          return `[tr]${key}`;
-        },
+        lang: "en-US",
       });
-      const result = server.tr("log.socketio.pathMismatch", "fallback", { path: "/x" });
-      expect(result).toBe("[tr]log.socketio.pathMismatch");
-      expect(trCalls).toContain("log.socketio.pathMismatch");
+      const result = server.tr("log.socketio.pathMismatch", "fallback", {
+        path: "/x",
+      });
+      expect(result).toBe("Path does not match pathPrefix, returning 404");
     });
   });
 });
@@ -219,8 +228,12 @@ describe("6.2 内存与定时器复核", () => {
 
       const handler = new PollingBatchHandler(processor, 50, 100);
 
-      const p1 = new Promise<Response>((resolve) => handler.addPoll("sid-1", resolve));
-      const p2 = new Promise<Response>((resolve) => handler.addPoll("sid-2", resolve));
+      const p1 = new Promise<Response>((resolve) =>
+        handler.addPoll("sid-1", resolve)
+      );
+      const p2 = new Promise<Response>((resolve) =>
+        handler.addPoll("sid-2", resolve)
+      );
 
       handler.clear();
 
