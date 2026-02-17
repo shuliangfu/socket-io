@@ -3,7 +3,6 @@
  * 处理 Socket.IO 数据包的编码和解码
  */
 
-import { $t } from "../i18n.ts";
 import { SocketIOPacket, SocketIOPacketType } from "../types.ts";
 
 /**
@@ -48,7 +47,7 @@ export function encodePacket(packet: SocketIOPacket): string {
  */
 export function decodePacket(encoded: string): SocketIOPacket {
   if (encoded.length === 0) {
-    throw new Error($t("errors.emptyPacket"));
+    throw new Error("Empty packet");
   }
 
   const type = parseInt(encoded[0], 10) as SocketIOPacketType;

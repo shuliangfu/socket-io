@@ -2,7 +2,7 @@
  * @fileoverview 压缩管理器测试
  */
 
-import { describe, it, expect } from "@dreamer/test";
+import { describe, expect, it } from "@dreamer/test";
 import { CompressionManager } from "../src/compression/compression-manager.ts";
 
 describe("压缩管理器", () => {
@@ -24,7 +24,9 @@ describe("压缩管理器", () => {
     expect(compressed).toBeInstanceOf(Uint8Array);
     // 压缩后的数据应该比原始数据小（对于重复数据）
     const originalSize = new TextEncoder().encode(data).length;
-    expect(compressed.length < originalSize || compressed.length > 0).toBe(true);
+    expect(compressed.length < originalSize || compressed.length > 0).toBe(
+      true,
+    );
   });
 
   it("应该解压压缩的数据", async () => {

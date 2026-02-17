@@ -5,7 +5,10 @@
 
 import { describe, expect, it } from "@dreamer/test";
 import { EnginePacketType } from "../src/types.ts";
-import { ClientPollingTransport, ClientWebSocketTransport } from "../src/client/mod.ts";
+import {
+  ClientPollingTransport,
+  ClientWebSocketTransport,
+} from "../src/client/mod.ts";
 import { TransportState } from "../src/client/transport.ts";
 
 describe("传输层", () => {

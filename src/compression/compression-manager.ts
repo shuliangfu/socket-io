@@ -66,7 +66,8 @@ export class CompressionManager {
       const msg = this.tr?.(
         "log.socketio.compressionUnavailable",
         "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+",
-      ) ?? "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+";
+      ) ??
+        "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+";
       (this.logger?.warn ?? console.warn)(msg);
       this.enabled = false;
     }

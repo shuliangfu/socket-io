@@ -3,8 +3,8 @@
  * 使用 HTTP 长轮询作为传输方式
  */
 
-import type { EncryptionManager } from "../encryption/encryption-manager.ts";
-import { decodePayload, encodePayload } from "../engine/parser.ts";
+import type { EncryptionManager } from "./encryption-manager.ts";
+import { decodePayload, encodePayload } from "./engine-parser.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { ClientTransport, TransportState } from "./transport.ts";
 

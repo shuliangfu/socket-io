@@ -30,6 +30,10 @@
  * ```
  */
 
+// 服务端 i18n：入口加载文案并设置 locale（仅服务端）
+import { initSocketIoI18n } from "./i18n.ts";
+initSocketIoI18n();
+
 // 导出类型
 export type {
   ClientEventListener,
@@ -77,8 +81,8 @@ export type { EncryptionConfig } from "./types.ts";
 
 // 导出流式处理相关
 export {
-  StreamParser,
   StreamPacketProcessor,
+  StreamParser,
 } from "./streaming/stream-parser.ts";
 
 // 导出硬件加速相关
@@ -104,23 +108,19 @@ export { EnginePacketType, SocketIOPacketType } from "./types.ts";
 // 客户端代码在 src/client/mod.ts 中
 
 // 导出适配器
-export {
-  MemoryAdapter,
-  RedisAdapter,
-  MongoDBAdapter,
-} from "./adapters/mod.ts";
+export { MemoryAdapter, MongoDBAdapter, RedisAdapter } from "./adapters/mod.ts";
 export type {
   AdapterMessage,
-  SocketIOAdapter,
-  RedisAdapterOptions,
-  RedisClient,
-  RedisConnectionConfig,
-  RedisPubSubClient,
   MongoDBAdapterOptions,
+  MongoDBChangeStream,
   MongoDBClient,
   MongoDBCollection,
   MongoDBConnectionConfig,
   MongoDBCursor,
   MongoDBDatabase,
-  MongoDBChangeStream,
+  RedisAdapterOptions,
+  RedisClient,
+  RedisConnectionConfig,
+  RedisPubSubClient,
+  SocketIOAdapter,
 } from "./adapters/mod.ts";

@@ -3,7 +3,7 @@
  * 表示一个客户端 Socket.IO 连接
  */
 
-import { decodePacket, encodePacket } from "../socketio/parser.ts";
+import { decodePacket, encodePacket } from "./socketio-parser.ts";
 import {
   EnginePacketType,
   SocketData,

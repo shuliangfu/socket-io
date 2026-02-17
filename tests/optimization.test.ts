@@ -2,9 +2,9 @@
  * @fileoverview 优化功能集成测试
  */
 
-import { describe, it, expect } from "@dreamer/test";
+import { describe, expect, it } from "@dreamer/test";
 import { Server } from "../src/server.ts";
-import { getAvailablePort, delay } from "./test-utils.ts";
+import { delay, getAvailablePort } from "./test-utils.ts";
 
 describe("优化功能集成测试", () => {
   it("应该启用消息序列化缓存", async () => {

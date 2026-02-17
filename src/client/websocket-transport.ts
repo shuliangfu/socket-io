@@ -4,9 +4,9 @@
  */
 
 import { EnginePacket, EnginePacketType } from "../types.ts";
-import { decodePacket, encodePacket } from "../engine/parser.ts";
+import { decodePacket, encodePacket } from "./engine-parser.ts";
 import { ClientTransport, TransportState } from "./transport.ts";
-import type { EncryptionManager } from "../encryption/encryption-manager.ts";
+import type { EncryptionManager } from "./encryption-manager.ts";
 
 /**
  * 客户端 WebSocket 传输层
@@ -67,11 +67,18 @@ export class ClientWebSocketTransport extends ClientTransport {
           data: JSON.stringify(handshake),
         });
       } catch (error) {
-        throw new Error(`WebSocket 握手失败: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+          `WebSocket 握手失败: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
       }
     }
 
-    if (this.state === TransportState.CONNECTED && this.ws?.readyState === WebSocket.OPEN) {
+    if (
+      this.state === TransportState.CONNECTED &&
+      this.ws?.readyState === WebSocket.OPEN
+    ) {
       return;
     }
 
@@ -157,7 +164,10 @@ export class ClientWebSocketTransport extends ClientTransport {
    * @param packet 数据包
    */
   async send(packet: EnginePacket): Promise<void> {
-    if (this.state !== TransportState.CONNECTED || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (
+      this.state !== TransportState.CONNECTED || !this.ws ||
+      this.ws.readyState !== WebSocket.OPEN
+    ) {
       return;
     }
 
@@ -204,7 +214,8 @@ export class ClientWebSocketTransport extends ClientTransport {
   private buildWebSocketUrl(): string {
     const url = new URL(this.url);
     const protocol = url.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${url.host}${url.pathname}websocket/${this.sid}`;
+    const wsUrl =
+      `${protocol}//${url.host}${url.pathname}websocket/${this.sid}`;
 
     // 添加查询参数
     const query = new URLSearchParams(url.search);

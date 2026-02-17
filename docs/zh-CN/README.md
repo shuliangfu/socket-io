@@ -1,18 +1,21 @@
 # @dreamer/socket.io
 
-> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和 Bun，提供完整的实时双向通信解决方案
+> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和
+> Bun，提供完整的实时双向通信解决方案
 
-[English](./README.md) | 中文 (Chinese)
+[English](../en-US/README.md) | 中文 (Chinese)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
-[![Tests](https://img.shields.io/badge/tests-189%20passed-brightgreen)](./TEST_REPORT.md)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
+[![Tests](https://img.shields.io/badge/tests-203%20passed-brightgreen)](../en-US/TEST_REPORT.md)
 
 ---
 
 ## 🎯 功能特性
 
-`@dreamer/socket.io` 是一个完整的 Socket.IO 实现，提供了服务端和客户端的所有核心功能，支持实时双向通信、房间管理、命名空间隔离、消息加密等高级特性。适用于构建实时聊天应用、在线协作工具、实时推送服务、多人游戏、IoT 设备通信等场景。
+`@dreamer/socket.io` 是一个完整的 Socket.IO
+实现，提供了服务端和客户端的所有核心功能，支持实时双向通信、房间管理、命名空间隔离、消息加密等高级特性。适用于构建实时聊天应用、在线协作工具、实时推送服务、多人游戏、IoT
+设备通信等场景。
 
 ---
 
@@ -112,12 +115,13 @@
 
 ## 🎨 设计原则
 
-**所有 @dreamer/* 库都遵循以下原则**：
+__所有 @dreamer/_ 包都遵循以下原则_*：
 
 - **主包（@dreamer/xxx）**：用于服务端（兼容 Deno 和 Bun 运行时）
 - **客户端子包（@dreamer/xxx/client）**：用于客户端（浏览器环境）
 
 这样可以：
+
 - 明确区分服务端和客户端代码
 - 避免在客户端代码中引入服务端依赖
 - 提供更好的类型安全和代码提示
@@ -153,13 +157,13 @@ bunx jsr add @dreamer/socket.io
 
 ## 🌍 环境兼容性
 
-| 环境 | 版本要求 | 状态 |
-|------|---------|------|
-| **Deno** | 2.6+ | ✅ 完全支持 |
-| **Bun** | 1.3.5 | ✅ 完全支持 |
-| **服务端** | - | ✅ 支持（兼容 Deno 和 Bun 运行时） |
-| **客户端** | - | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
-| **依赖** | - | 📦 @dreamer/runtime-adapter（用于跨运行时兼容） |
+| 环境       | 版本要求 | 状态                                                             |
+| ---------- | -------- | ---------------------------------------------------------------- |
+| **Deno**   | 2.6+     | ✅ 完全支持                                                      |
+| **Bun**    | 1.3.5    | ✅ 完全支持                                                      |
+| **服务端** | -        | ✅ 支持（兼容 Deno 和 Bun 运行时）                               |
+| **客户端** | -        | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
+| **依赖**   | -        | 📦 @dreamer/runtime-adapter（用于跨运行时兼容）                  |
 
 ---
 
@@ -346,9 +350,9 @@ const allSocketIds = await io.allSockets();
 console.log(`当前有 ${allSocketIds.size} 个连接`);
 
 // 批量操作
-await io.socketsJoin("room-123");  // 所有 Socket 加入房间
+await io.socketsJoin("room-123"); // 所有 Socket 加入房间
 await io.socketsLeave("room-123"); // 所有 Socket 离开房间
-await io.disconnectSockets();      // 断开所有连接
+await io.disconnectSockets(); // 断开所有连接
 ```
 
 ### Socket 高级功能
@@ -453,13 +457,15 @@ await io.listen();
 ```
 
 **注意**：使用 Redis 适配器需要安装 `redis` 包：
+
 ```bash
 deno add npm:redis
 ```
 
-### 调试与日志（debug / logger / t）
+### 调试与日志（debug / logger / lang）
 
-创建 Server 时可传入 **debug**、**logger** 和 **t**，便于排查连接与握手问题，并支持日志国际化：
+创建 Server 时可传入 **debug**、**logger** 和
+**lang**，便于排查连接与握手问题，并支持日志与错误信息的国际化：
 
 ```typescript
 import { createLogger } from "@dreamer/logger";
@@ -470,23 +476,9 @@ const logger = createLogger({ level: "debug", format: "text" });
 const io = new Server({
   port: 3000,
   path: "/socket.io/",
-  debug: true,   // 输出握手、轮询、WebSocket 等详细调试信息
-  logger,        // 所有 info/debug 通过 logger 输出，不使用 console
-  t: (key, params) => {
-    // 可选：i18n 翻译，用于 debug 日志和错误信息
-    const messages: Record<string, string> = {
-      "log.socketio.serverRunning": "Socket.IO 服务器运行在 {url}",
-      "log.socketio.pollingBatchFailed": "轮询批量处理失败 (sid: {sid})",
-      // ... 更多 key 见源码
-    };
-    let msg = messages[key] ?? key;
-    if (params) {
-      for (const [k, v] of Object.entries(params)) {
-        msg = msg.replace(`{${k}}`, String(v));
-      }
-    }
-    return msg;
-  },
+  debug: true, // 输出握手、轮询、WebSocket 等详细调试信息
+  logger, // 所有 info/debug 通过 logger 输出，不使用 console
+  lang: "zh-CN", // 或 "en-US"；不传则根据环境变量 LANGUAGE/LC_ALL/LANG 自动检测
 });
 
 io.on("connection", (socket) => {
@@ -494,6 +486,9 @@ io.on("connection", (socket) => {
 });
 await io.listen();
 ```
+
+日志与错误信息使用包内 i18n（中/英）。在构造函数中设置 **lang**
+可固定语言；不设置则按环境变量检测。
 
 ### 分布式部署（MongoDB 适配器）
 
@@ -529,11 +524,13 @@ await io.listen();
 ```
 
 **注意**：使用 MongoDB 适配器需要安装 `mongodb` 包：
+
 ```bash
 deno add npm:mongodb
 ```
 
 **MongoDB 适配器工作模式**：
+
 - **副本集模式**：使用 Change Streams，实时监听消息变更（推荐，性能更好）
 - **单节点模式**：使用轮询，每 500ms 检查一次新消息（自动降级，延迟较高）
 
@@ -546,74 +543,88 @@ deno add npm:mongodb
 Socket.IO 服务器类，管理所有连接和事件。
 
 **构造函数**：
+
 ```typescript
 new Server(options?: ServerOptions)
 ```
 
 **选项**：
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `host` | `string` | `"0.0.0.0"` | 主机地址 |
-| `port` | `number` | `3000` | 端口号 |
-| `path` | `string` | `"/socket.io/"` | Socket.IO 路径 |
-| `transports` | `TransportType[]` | `["websocket", "polling"]` | 允许的传输方式 |
-| `pingTimeout` | `number` | `20000` | 心跳超时（毫秒） |
-| `pingInterval` | `number` | `25000` | 心跳间隔（毫秒） |
-| `allowPolling` | `boolean` | `true` | 是否允许 HTTP 长轮询 |
-| `pollingTimeout` | `number` | `60000` | 轮询超时（毫秒） |
-| `allowCORS` | `boolean` | `true` | 是否允许跨域 |
-| `cors` | `CorsOptions` | - | CORS 配置 |
-| `maxConnections` | `number` | 无限制 | 最大连接数 |
-| `connectTimeout` | `number` | `45000` | 连接超时（毫秒） |
-| `compression` | `boolean` | `false` | 是否启用消息压缩 |
-| `streaming` | `boolean` | `false` | 是否启用流式处理（大数据包） |
-| `maxPacketSize` | `number` | `10 * 1024 * 1024` | 最大数据包大小（字节，默认 10MB） |
-| `hardwareAcceleration` | `boolean` | `false` | 是否启用硬件加速 |
-| `adapter` | `SocketIOAdapter` | 内存适配器 | 分布式适配器 |
-| `encryption` | `EncryptionConfig` | - | 消息加密配置 |
-| `debug` | `boolean` | `false` | 是否启用调试日志 |
-| `logger` | `Logger` | 默认 logger | 日志实例 |
-| `t` | `(key, params?) => string` | - | 翻译函数（i18n），用于 debug 日志和错误信息 |
+| 参数                   | 类型                 | 默认值                     | 说明                              |
+| ---------------------- | -------------------- | -------------------------- | --------------------------------- |
+| `host`                 | `string`             | `"0.0.0.0"`                | 主机地址                          |
+| `port`                 | `number`             | `3000`                     | 端口号                            |
+| `path`                 | `string`             | `"/socket.io/"`            | Socket.IO 路径                    |
+| `transports`           | `TransportType[]`    | `["websocket", "polling"]` | 允许的传输方式                    |
+| `pingTimeout`          | `number`             | `20000`                    | 心跳超时（毫秒）                  |
+| `pingInterval`         | `number`             | `25000`                    | 心跳间隔（毫秒）                  |
+| `allowPolling`         | `boolean`            | `true`                     | 是否允许 HTTP 长轮询              |
+| `pollingTimeout`       | `number`             | `60000`                    | 轮询超时（毫秒）                  |
+| `allowCORS`            | `boolean`            | `true`                     | 是否允许跨域                      |
+| `cors`                 | `CorsOptions`        | -                          | CORS 配置                         |
+| `maxConnections`       | `number`             | 无限制                     | 最大连接数                        |
+| `connectTimeout`       | `number`             | `45000`                    | 连接超时（毫秒）                  |
+| `compression`          | `boolean`            | `false`                    | 是否启用消息压缩                  |
+| `streaming`            | `boolean`            | `false`                    | 是否启用流式处理（大数据包）      |
+| `maxPacketSize`        | `number`             | `10 * 1024 * 1024`         | 最大数据包大小（字节，默认 10MB） |
+| `hardwareAcceleration` | `boolean`            | `false`                    | 是否启用硬件加速                  |
+| `adapter`              | `SocketIOAdapter`    | 内存适配器                 | 分布式适配器                      |
+| `encryption`           | `EncryptionConfig`   | -                          | 消息加密配置                      |
+| `debug`                | `boolean`            | `false`                    | 是否启用调试日志                  |
+| `logger`               | `Logger`             | 默认 logger                | 日志实例                          |
+| `lang`                 | `"en-US" \| "zh-CN"` | 环境变量检测               | 日志与错误信息的语言              |
 
 **方法**：
+
 - `listen(host?: string, port?: number): Promise<void>`: 启动服务器
 - `close(): Promise<void>`: 关闭服务器
 - `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
 - `of(name: string): Namespace`: 创建或获取命名空间
 - `emit(event: string, data?: any): void`: 向默认命名空间的所有 Socket 发送事件
-- `to(room: string): { emit: (event: string, data?: any) => void }`: 向默认命名空间的房间发送事件
-- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
-- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
+- `to(room: string): { emit: (event: string, data?: any) => void }`:
+  向默认命名空间的房间发送事件
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()`
+  的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`:
+  排除指定房间或 Socket ID
 - `allSockets(): Promise<Set<string>>`: 获取所有 Socket ID
 - `fetchSockets(): Promise<SocketIOSocket[]>`: 获取所有 Socket 实例
 - `socketsJoin(room: string): Promise<void>`: 批量加入房间
 - `socketsLeave(room: string): Promise<void>`: 批量离开房间
 - `disconnectSockets(close?: boolean): Promise<void>`: 批量断开连接
-- `serverSideEmit(event: string, ...args: any[]): void`: 服务器端事件发送（用于跨服务器通信）
+- `serverSideEmit(event: string, ...args: any[]): void`:
+  服务器端事件发送（用于跨服务器通信）
 
 ### Socket
 
 Socket.IO 连接类，表示一个客户端连接。
 
 **方法**：
+
 - `emit(event: string, data?: any, callback?: Function): void`: 发送事件
 - `on(event: string, listener: SocketEventListener): void`: 监听事件
 - `off(event: string, listener?: SocketEventListener): void`: 移除监听器
 - `once(event: string, listener: SocketEventListener): void`: 只监听一次事件
-- `removeAllListeners(event?: string): this`: 移除所有事件监听器（或指定事件的监听器）
+- `removeAllListeners(event?: string): this`:
+  移除所有事件监听器（或指定事件的监听器）
 - `join(room: string): void`: 加入房间
 - `leave(room: string): void`: 离开房间
-- `to(room: string): { emit: (event: string, data?: any) => void }`: 向房间发送事件（不包括自己）
-- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
-- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
-- `broadcast: { emit: (event: string, data?: any) => void }`: 向所有其他 Socket 广播消息（不包括自己）
+- `to(room: string): { emit: (event: string, data?: any) => void }`:
+  向房间发送事件（不包括自己）
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()`
+  的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`:
+  排除指定房间或 Socket ID
+- `broadcast: { emit: (event: string, data?: any) => void }`: 向所有其他 Socket
+  广播消息（不包括自己）
 - `compress(value: boolean): this`: 设置是否压缩下一次发送的消息
 - `getRooms(): Set<string>`: 获取 Socket 所在的房间列表
-- `getServer(): Server | undefined`: 获取关联的 Server 实例（与 @dreamer/websocket 对齐）
+- `getServer(): Server | undefined`: 获取关联的 Server 实例（与
+  @dreamer/websocket 对齐）
 - `disconnect(reason?: string): void`: 断开连接
 
 **属性**：
+
 - `id: string`: Socket 唯一标识
 - `nsp: string`: 命名空间
 - `handshake: Handshake`: 握手信息
@@ -623,31 +634,34 @@ Socket.IO 连接类，表示一个客户端连接。
 
 ### Client
 
-Socket.IO 客户端类，用于浏览器环境连接服务端。通过 `jsr:@dreamer/socket.io/client` 引入。
+Socket.IO 客户端类，用于浏览器环境连接服务端。通过
+`jsr:@dreamer/socket.io/client` 引入。
 
 **构造函数**：
+
 ```typescript
 new Client(options: ClientOptions)
 ```
 
 **选项**：
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `url` | `string` | 必填 | 服务器 URL |
-| `namespace` | `string` | `"/"` | 命名空间 |
-| `query` | `Record<string, string>` | - | 连接时的查询参数 |
-| `autoConnect` | `boolean` | `true` | 是否自动连接 |
-| `autoReconnect` | `boolean` | `true` | 是否自动重连 |
-| `reconnectionDelay` | `number` | `1000` | 重连延迟（毫秒） |
-| `reconnectionDelayMax` | `number` | `5000` | 最大重连延迟（毫秒） |
-| `reconnectionAttempts` | `number` | `Infinity` | 重连尝试次数 |
-| `transports` | `TransportType[]` | `["websocket", "polling"]` | 传输方式优先级 |
-| `forceNew` | `boolean` | `false` | 是否强制新建连接 |
-| `timeout` | `number` | `20000` | 连接超时（毫秒） |
-| `encryption` | `EncryptionConfig` | - | 消息加密配置（需与服务端一致） |
+| 参数                   | 类型                     | 默认值                     | 说明                           |
+| ---------------------- | ------------------------ | -------------------------- | ------------------------------ |
+| `url`                  | `string`                 | 必填                       | 服务器 URL                     |
+| `namespace`            | `string`                 | `"/"`                      | 命名空间                       |
+| `query`                | `Record<string, string>` | -                          | 连接时的查询参数               |
+| `autoConnect`          | `boolean`                | `true`                     | 是否自动连接                   |
+| `autoReconnect`        | `boolean`                | `true`                     | 是否自动重连                   |
+| `reconnectionDelay`    | `number`                 | `1000`                     | 重连延迟（毫秒）               |
+| `reconnectionDelayMax` | `number`                 | `5000`                     | 最大重连延迟（毫秒）           |
+| `reconnectionAttempts` | `number`                 | `Infinity`                 | 重连尝试次数                   |
+| `transports`           | `TransportType[]`        | `["websocket", "polling"]` | 传输方式优先级                 |
+| `forceNew`             | `boolean`                | `false`                    | 是否强制新建连接               |
+| `timeout`              | `number`                 | `20000`                    | 连接超时（毫秒）               |
+| `encryption`           | `EncryptionConfig`       | -                          | 消息加密配置（需与服务端一致） |
 
 **方法**：
+
 - `connect(): Promise<void>`: 手动连接
 - `disconnect(): void`: 断开连接
 - `getId(): string`: 获取 Socket ID（连接建立后有效）
@@ -656,18 +670,23 @@ new Client(options: ClientOptions)
 - `off(event: string, listener?: ClientEventListener): void`: 移除监听器
 - `once(event: string, listener: ClientEventListener): void`: 只监听一次
 
-**事件**：`connect`、`disconnect`、`connect_error`、`reconnecting`、`reconnect_failed`、`message` 及自定义事件
+**事件**：`connect`、`disconnect`、`connect_error`、`reconnecting`、`reconnect_failed`、`message`
+及自定义事件
 
 ### Namespace
 
 命名空间类，管理命名空间内的 Socket 连接。
 
 **方法**：
+
 - `on(event: "connection", listener: ServerEventListener): void`: 监听连接事件
 - `emit(event: string, data?: any): void`: 向所有 Socket 发送事件
-- `to(room: string): { emit: (event: string, data?: any) => void }`: 向房间发送事件
-- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()` 的别名
-- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`: 排除指定房间或 Socket ID
+- `to(room: string): { emit: (event: string, data?: any) => void }`:
+  向房间发送事件
+- `in(room: string): { emit: (event: string, data?: any) => void }`: `to()`
+  的别名
+- `except(room: string | string[]): { emit: (event: string, data?: any) => void }`:
+  排除指定房间或 Socket ID
 - `getSocket(socketId: string): SocketIOSocket | undefined`: 获取 Socket
 - `getSockets(): Map<string, SocketIOSocket>`: 获取所有 Socket
 - `socketsJoin(room: string): Promise<void>`: 批量加入房间
@@ -678,6 +697,7 @@ new Client(options: ClientOptions)
 ### 适配器
 
 适配器支持泛型，便于 mock 或使用自定义客户端实现：
+
 - `RedisAdapter<TClient, TPubSubClient>`：可传入自定义 Redis 客户端类型
 - `MongoDBAdapter<TClient>`：可传入自定义 MongoDB 客户端类型
 
@@ -686,6 +706,7 @@ new Client(options: ClientOptions)
 Redis 分布式适配器，用于多服务器部署。
 
 **选项**：
+
 - `connection?: RedisConnectionConfig`: Redis 连接配置
 - `client?: RedisClient`: Redis 客户端实例（可选）
 - `pubsubConnection?: RedisConnectionConfig`: Redis Pub/Sub 连接配置（可选）
@@ -698,11 +719,13 @@ Redis 分布式适配器，用于多服务器部署。
 MongoDB 分布式适配器，用于多服务器部署。
 
 **选项**：
+
 - `connection: MongoDBConnectionConfig`: MongoDB 连接配置
 - `keyPrefix?: string`: 键前缀（默认："socket.io"）
 - `heartbeatInterval?: number`: 服务器心跳间隔（秒，默认：30）
 
 **MongoDB 连接配置**：
+
 - `url?: string`: MongoDB 连接 URL
 - `host?: string`: 主机地址（默认："127.0.0.1"）
 - `port?: number`: 端口（默认：27017）
@@ -716,13 +739,13 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 消息加密配置（服务端 `encryption` 与客户端 `encryption` 需一致）：
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `key` | `Uint8Array` 或 `string` | 必填 | 加密密钥 |
-| `algorithm` | `string` | 自动选择 | `aes-256-gcm`、`aes-128-gcm` 等 |
-| `enabled` | `boolean` | `true` | 是否启用加密 |
-| `cacheSize` | `number` | `1000` | 加密缓存大小 |
-| `cacheTTL` | `number` | `60000` | 缓存过期时间（毫秒） |
+| 参数        | 类型                     | 默认值   | 说明                            |
+| ----------- | ------------------------ | -------- | ------------------------------- |
+| `key`       | `Uint8Array` 或 `string` | 必填     | 加密密钥                        |
+| `algorithm` | `string`                 | 自动选择 | `aes-256-gcm`、`aes-128-gcm` 等 |
+| `enabled`   | `boolean`                | `true`   | 是否启用加密                    |
+| `cacheSize` | `number`                 | `1000`   | 加密缓存大小                    |
+| `cacheTTL`  | `number`                 | `60000`  | 缓存过期时间（毫秒）            |
 
 > **注意**：服务端与客户端的 `encryption` 配置必须一致，否则无法正常通信。
 
@@ -740,20 +763,25 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 ## 📊 测试报告
 
-详细的测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)
+详细报告：[TEST_REPORT.md](./TEST_REPORT.md)（中文） ·
+[English](../en-US/TEST_REPORT.md)
 
 **测试概览**:
-- ✅ 总测试数: 189
+
+- ✅ 总测试数: 203
 - ✅ 通过率: 100%
+- ✅ 执行时间: Deno ~44–45s / Bun ~38s
 - ✅ 测试覆盖: 核心功能、边界情况、集成场景、优化功能（国际化、泛型、资源清理）
 
 ---
 
 ## 📋 变更日志
 
-详见 [CHANGELOG-zh.md](./CHANGELOG-zh.md)。
+详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.0.3)**：新增 `./types` 导出；修复 esbuild resolver 打包客户端代码时无法解析 `EnginePacketType`、`SocketIOPacketType` 的问题。
+**最新 (v1.0.4)**：许可证变更为 Apache 2.0。**i18n（源码）**：服务端集成
+@dreamer/i18n；ServerOptions.lang；日志/错误走 $t()。**i18n（文档）**：完整
+中英文翻译。客户端导入路径调整，便于仅打客户端包。测试报告已更新（203 通过）。
 
 ---
 
@@ -765,7 +793,7 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 ## 📄 许可证
 
-MIT License - 详见 [LICENSE.md](./LICENSE.md)
+Apache License 2.0 - 详见 [LICENSE](../../LICENSE)
 
 ---
 

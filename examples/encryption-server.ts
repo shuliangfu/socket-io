@@ -37,17 +37,20 @@ io.on("connection", (socket) => {
   });
 
   // 监听带确认的事件
-  socket.on("secure-request", (data: any, callback?: (response: any) => void) => {
-    console.log("收到安全请求:", data);
+  socket.on(
+    "secure-request",
+    (data: any, callback?: (response: any) => void) => {
+      console.log("收到安全请求:", data);
 
-    // 发送确认响应
-    if (callback) {
-      callback({
-        status: "ok",
-        data: "响应数据",
-      });
-    }
-  });
+      // 发送确认响应
+      if (callback) {
+        callback({
+          status: "ok",
+          data: "响应数据",
+        });
+      }
+    },
+  );
 
   // 断开连接事件
   socket.on("disconnect", (reason: any) => {

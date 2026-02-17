@@ -68,14 +68,8 @@ export interface ServerOptions {
   pollingTimeout?: number;
   /** 是否启用调试日志（默认：false），开启后会在控制台输出请求路径、握手等调试信息 */
   debug?: boolean;
-  /**
-   * 翻译函数（可选，用于 i18n）
-   * 传入时，debug 日志、错误信息将使用 t(key, params) 获取翻译；未传入时使用默认中文
-   */
-  t?: (
-    key: string,
-    params?: Record<string, string | number | boolean>,
-  ) => string | undefined;
+  /** 语言（可选），用于日志与错误文案；未传时由环境变量 LANGUAGE/LC_ALL/LANG 检测 */
+  lang?: "en-US" | "zh-CN";
   /** 分布式适配器（可选，用于多服务器部署） */
   adapter?: SocketIOAdapter;
   /** 加密配置（可选，用于消息加密） */

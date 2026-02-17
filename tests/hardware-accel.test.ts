@@ -2,7 +2,7 @@
  * @fileoverview 硬件加速器测试
  */
 
-import { describe, it, expect } from "@dreamer/test";
+import { describe, expect, it } from "@dreamer/test";
 import { HardwareAccelerator } from "../src/hardware-accel/accelerator.ts";
 
 describe("硬件加速器", () => {

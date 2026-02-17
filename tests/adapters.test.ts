@@ -2,7 +2,7 @@
  * @fileoverview 适配器测试
  */
 
-import { describe, it, expect } from "@dreamer/test";
+import { describe, expect, it } from "@dreamer/test";
 import { MemoryAdapter } from "../src/adapters/memory.ts";
 import { RedisAdapter } from "../src/adapters/redis.ts";
 import { MongoDBAdapter } from "../src/adapters/mongodb.ts";

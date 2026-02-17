@@ -120,11 +120,13 @@ export class PollingBatchHandler {
       // 发送关闭数据包，让客户端知道连接已关闭
       // Engine.IO CLOSE 数据包格式: "1:1"
       const closePacket = "1:1";
-      request.resolve(new Response(closePacket, {
-        headers: {
-          "Content-Type": "text/plain; charset=UTF-8",
-        },
-      }));
+      request.resolve(
+        new Response(closePacket, {
+          headers: {
+            "Content-Type": "text/plain; charset=UTF-8",
+          },
+        }),
+      );
     }
     this.pendingPolls.clear();
   }
