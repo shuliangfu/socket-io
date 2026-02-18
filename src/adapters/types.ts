@@ -4,8 +4,15 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { SocketIOPacket } from "../types.ts";
-import { SocketIOSocket } from "../socketio/socket.ts";
+import type { SocketIOPacket } from "../types.ts";
+
+/**
+ * 适配器使用的 Socket 类型占位（避免 adapters 依赖 socketio/socket 产生循环依赖）
+ * 具体实现（memory/redis/mongodb）内部仍按 SocketIOSocket 使用，通过断言传入
+ */
+export interface AdapterSocketLike {
+  id?: string;
+}
 
 /**
  * 消息数据
@@ -37,7 +44,7 @@ export interface SocketIOAdapter {
    */
   init(
     serverId: string,
-    sockets: Map<string, SocketIOSocket>,
+    sockets: Map<string, AdapterSocketLike>,
   ): Promise<void> | void;
 
   /**

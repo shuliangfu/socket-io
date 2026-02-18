@@ -3,7 +3,7 @@
  * 处理 Engine.IO 数据包的编码和解码
  */
 
-import { EnginePacket, EnginePacketType } from "../types.ts";
+import { EnginePacket, EnginePacketType } from "./types.ts";
 
 /**
  * Engine.IO 协议版本

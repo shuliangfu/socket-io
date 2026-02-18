@@ -4,7 +4,11 @@
  */
 
 import type { SocketIOSocket } from "../socketio/socket.ts";
-import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
+import type {
+  AdapterMessage,
+  AdapterSocketLike,
+  SocketIOAdapter,
+} from "./types.ts";
 
 /**
  * 内存适配器（默认，单服务器）
@@ -16,9 +20,9 @@ export class MemoryAdapter implements SocketIOAdapter {
   private rooms: Map<string, Map<string, Set<string>>> = new Map(); // namespace -> room -> socketIds
   private socketRooms: Map<string, Map<string, Set<string>>> = new Map(); // namespace -> socketId -> rooms
 
-  init(serverId: string, sockets: Map<string, SocketIOSocket>): void {
+  init(serverId: string, sockets: Map<string, AdapterSocketLike>): void {
     this.serverId = serverId;
-    this.sockets = sockets;
+    this.sockets = sockets as Map<string, SocketIOSocket>;
   }
 
   close(): void {

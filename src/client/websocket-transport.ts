@@ -3,7 +3,7 @@
  * 使用 WebSocket 作为传输方式
  */
 
-import { EnginePacket, EnginePacketType } from "../types.ts";
+import { EnginePacket, EnginePacketType } from "./types.ts";
 import { decodePacket, encodePacket } from "./engine-parser.ts";
 import { ClientTransport, TransportState } from "./transport.ts";
 import type { EncryptionManager } from "./encryption-manager.ts";

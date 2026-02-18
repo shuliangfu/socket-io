@@ -5,7 +5,7 @@
 
 import type { EncryptionManager } from "./encryption-manager.ts";
 import { decodePayload, encodePayload } from "./engine-parser.ts";
-import { EnginePacket, EnginePacketType } from "../types.ts";
+import { EnginePacket, EnginePacketType } from "./types.ts";
 import { ClientTransport, TransportState } from "./transport.ts";
 
 /**

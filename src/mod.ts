@@ -46,6 +46,7 @@ export type {
   SocketEventListener,
   TransportType,
 } from "./types.ts";
+export type { ConnectionEventListener } from "./socketio/namespace.ts";
 
 // 导出主要类
 export { Server } from "./server.ts";
