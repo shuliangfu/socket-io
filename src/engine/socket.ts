@@ -4,6 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { $t } from "../i18n.ts";
 import { EnginePacket, EnginePacketType, Handshake } from "../types.ts";
 import { Transport } from "./transport.ts";
 import { WebSocketTransport } from "./websocket-transport.ts";
@@ -41,12 +42,6 @@ export class EngineSocket {
   private heartbeatDisabled = false;
   /** 关闭回调（用于 Server 清理 engineSockets、heartbeatManager 等，防止内存泄漏） */
   private onCloseCallback: (() => void) | null = null;
-  /** 翻译函数（可选） */
-  private tr: (
-    key: string,
-    fallback: string,
-    params?: Record<string, string | number | boolean>,
-  ) => string;
   /** Logger 实例（可选，用于统一日志输出） */
   private readonly logger?: Logger;
 
@@ -57,8 +52,7 @@ export class EngineSocket {
    * @param pingTimeout 心跳超时时间（毫秒）
    * @param pingInterval 心跳间隔（毫秒）
    * @param onClose 关闭时回调（可选，用于 Server 清理资源）
-   * @param tr 翻译函数（可选，用于 i18n）
-   * @param logger Logger 实例（可选，用于统一日志输出）
+   * @param logger Logger 实例（可选），用于统一日志输出
    */
   constructor(
     id: string,
@@ -66,11 +60,6 @@ export class EngineSocket {
     pingTimeout: number = 20000,
     pingInterval: number = 25000,
     onClose?: () => void,
-    tr?: (
-      key: string,
-      fallback: string,
-      params?: Record<string, string | number | boolean>,
-    ) => string,
     logger?: Logger,
   ) {
     this.id = id;
@@ -78,7 +67,6 @@ export class EngineSocket {
     this.pingTimeout = pingTimeout;
     this.pingInterval = pingInterval;
     this.onCloseCallback = onClose ?? null;
-    this.tr = tr ?? ((_k: string, f: string) => f);
     this.logger = logger;
   }
 
@@ -201,10 +189,7 @@ export class EngineSocket {
         listener(packet);
       } catch (error) {
         (this.logger?.error ?? console.error)(
-          this.tr(
-            "log.socketioEngine.eventListenerError",
-            "Engine.IO Socket 事件监听器错误",
-          ),
+          $t("log.socketioEngine.eventListenerError"),
           error,
         );
       }
@@ -269,10 +254,7 @@ export class EngineSocket {
         this.onCloseCallback();
       } catch (error) {
         (this.logger?.error ?? console.error)(
-          this.tr(
-            "log.socketioEngine.onCloseCallbackError",
-            "EngineSocket onClose 回调错误",
-          ),
+          $t("log.socketioEngine.onCloseCallbackError"),
           error,
         );
       }

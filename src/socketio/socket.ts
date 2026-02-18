@@ -6,6 +6,7 @@
 import type { Logger } from "@dreamer/logger";
 import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
+import { $t } from "../i18n.ts";
 import {
   EnginePacketType,
   Handshake,
@@ -75,7 +76,7 @@ export class SocketIOSocket {
   /**
    * 获取 Server 实例（与 @dreamer/websocket 对齐）
    *
-   * 供中间件、MessageQueue 等调用 tr 等方法。
+   * 供中间件、MessageQueue 等获取 Server 实例。
    *
    * @returns Server 实例，若 Socket 未关联 Server 则返回 undefined
    *
@@ -305,10 +306,7 @@ export class SocketIOSocket {
         }
       }
     } catch (error) {
-      const msg = this._server?.tr(
-        "log.socketio.packetProcessError",
-        "Socket.IO 数据包处理错误",
-      ) ?? "Socket.IO 数据包处理错误";
+      const msg = $t("log.socketio.packetProcessError");
       (this._logger?.error ?? console.error)(msg, error);
     }
   }
@@ -553,11 +551,7 @@ export class SocketIOSocket {
         try {
           listener(data, callback);
         } catch (error) {
-          const msg = this._server?.tr(
-            "log.socketio.eventListenerError",
-            `事件监听器错误 (${event})`,
-            { event },
-          ) ?? `事件监听器错误 (${event})`;
+          const msg = $t("log.socketio.eventListenerError", { event });
           (this._logger?.error ?? console.error)(msg, error);
         }
       }
@@ -837,10 +831,7 @@ export class SocketIOSocket {
             );
             if (result instanceof Promise) {
               result.catch((error) => {
-                const msg = this._server?.tr(
-                  "log.socketio.adapterRoomBroadcastFailed",
-                  "适配器房间广播失败",
-                ) ?? "适配器房间广播失败";
+                const msg = $t("log.socketio.adapterRoomBroadcastFailed");
                 (this._logger?.error ?? console.error)(msg, error);
               });
             }
@@ -920,10 +911,7 @@ export class SocketIOSocket {
     const builder = {
       emit: (event: string, data?: unknown) => {
         // 如果没有指定房间，则向所有房间广播（除了排除的）
-        const msg = this._server?.tr(
-          "log.socketio.exceptNeedsToOrIn",
-          "[SocketIOSocket] except() 需要配合 to() 或 in() 使用",
-        ) ?? "[SocketIOSocket] except() 需要配合 to() 或 in() 使用";
+        const msg = $t("log.socketio.exceptNeedsToOrIn");
         (this._logger?.warn ?? console.warn)(msg);
         this.emit(event, data);
         this._except.clear();
@@ -1085,10 +1073,7 @@ export class SocketIOSocket {
             const result = adapter.broadcast(adapterMessage);
             if (result instanceof Promise) {
               result.catch((error) => {
-                const msg = this._server?.tr(
-                  "log.socketio.adapterBroadcastFailed",
-                  "适配器全局广播失败",
-                ) ?? "适配器全局广播失败";
+                const msg = $t("log.socketio.adapterBroadcastFailed");
                 (this._logger?.error ?? console.error)(msg, error);
               });
             }

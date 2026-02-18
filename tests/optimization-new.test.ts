@@ -100,27 +100,19 @@ describe("2.2 错误信息国际化 (tr)", () => {
     });
   });
 
-  describe("MessageQueue tr 参数", () => {
-    it("传入 tr 时，MessageQueue 应正常创建", () => {
-      const tr = (
-        key: string,
-        fallback: string,
-      ) => (key === "log.socketio.messageSendError" ? "[i18n]msg" : fallback);
-      const queue = new MessageQueue(100, 10, { tr });
+  describe("MessageQueue", () => {
+    it("应正常创建", () => {
+      const queue = new MessageQueue(100, 10, {});
       expect(queue).toBeTruthy();
       expect(queue.size).toBe(0);
     });
   });
 
-  describe("Server lang 选项传递到 tr", () => {
-    it("Server 的 lang 应在 tr() 中生效", () => {
-      const server = new Server({
-        path: "/socket.io/",
-        lang: "en-US",
-      });
-      const result = server.tr("log.socketio.pathMismatch", "fallback", {
-        path: "/x",
-      });
+  describe("Server lang 选项与 $t", () => {
+    it("lang: en-US 时 $t 应返回英文", async () => {
+      const { $t, setSocketIoLocale } = await import("../src/i18n.ts");
+      setSocketIoLocale("en-US");
+      const result = $t("log.socketio.pathMismatch", { path: "/x" });
       expect(result).toBe("Path does not match pathPrefix, returning 404");
     });
   });
@@ -416,10 +408,10 @@ describe("API 优化", () => {
   });
 });
 
-describe("WebSocketBatchSender setTr", () => {
-  it("setTr 应可被调用", () => {
+describe("WebSocketBatchSender setLang", () => {
+  it("setLang 应可被调用", () => {
     const sender = new WebSocketBatchSender(100);
-    sender.setTr((key, fallback) => fallback);
+    sender.setLang("en-US");
     expect(sender).toBeTruthy();
   });
 });

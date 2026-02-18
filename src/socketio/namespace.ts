@@ -77,16 +77,7 @@ export class Namespace {
     this.logger = logger ?? createLogger();
     this.server = server;
     this.socketPool = new SocketPool(1000, this.logger, this.server);
-    this.messageQueue = new MessageQueue(10000, 100, {
-      logger: this.logger,
-      tr: this.server
-        ? (
-          key: string,
-          fallback: string,
-          params?: Record<string, string | number | boolean>,
-        ) => this.server!.tr(key, fallback, params)
-        : undefined,
-    });
+    this.messageQueue = new MessageQueue(10000, 100, { logger: this.logger });
   }
 
   /**

@@ -4,6 +4,8 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { $t } from "../i18n.ts";
+import type { Locale } from "../i18n.ts";
 
 /**
  * WebSocket 发送任务
@@ -26,12 +28,8 @@ export class WebSocketBatchSender {
   private readonly batchSize: number;
   /** Logger 实例（可选） */
   private logger?: Logger;
-  /** 翻译函数（可选，用于错误信息国际化） */
-  private tr?: (
-    key: string,
-    fallback: string,
-    params?: Record<string, string | number | boolean>,
-  ) => string;
+  /** 语言（可选），用于 $t */
+  private lang?: Locale;
 
   /**
    * 创建 WebSocket 批量发送器
@@ -51,16 +49,10 @@ export class WebSocketBatchSender {
   }
 
   /**
-   * 设置翻译函数（用于静态实例，由 WebSocketTransport 在首次创建时调用）
+   * 设置语言（用于静态实例，由 WebSocketTransport 在首次创建时调用）
    */
-  setTr(
-    tr: (
-      key: string,
-      fallback: string,
-      params?: Record<string, string | number | boolean>,
-    ) => string,
-  ): void {
-    this.tr = tr;
+  setLang(lang: Locale): void {
+    this.lang = lang;
   }
 
   /**
@@ -95,10 +87,7 @@ export class WebSocketBatchSender {
             task.ws.send(task.data);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            const msg = this.tr?.(
-              "log.socketioEngine.wsSendError",
-              "WebSocket 发送错误",
-            ) ?? "WebSocket 发送错误";
+            const msg = $t("log.socketioEngine.wsSendError");
             (this.logger?.error ?? console.error)(msg, error);
           }
         }
