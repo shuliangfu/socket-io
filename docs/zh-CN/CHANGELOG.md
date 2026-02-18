@@ -7,6 +7,31 @@
 
 ---
 
+## [1.0.6] - 2026-02-18
+
+### 移除
+
+- **`tr` 方法及所有引用**：Server 不再提供 `tr()`。Engine、socketio（namespace、
+  message-queue、socket）、compression 仅使用包内 `i18n.ts` 的 `$t`。构造时不再
+  传入 `tr` 或 `lang`；语言在 Server 构造时通过
+  `setSocketIoLocale(options.lang)` 设置一次。
+
+### 变更
+
+- **Server**：所有 `this.tr(...)` 改为 `$t(key, params, this.options.lang)`。
+  移除传给 BatchHeartbeatManager、CompressionManager、EngineSocket、
+  PollingTransport、WebSocketTransport、Namespace MessageQueue 的 `tr`。
+- **Engine**：heartbeat-manager、transport、socket、websocket-transport、
+  websocket-batch-sender 使用 `$t(key)`（不传 lang）。WebSocketBatchSender 保留
+  `setLang()` 供可选覆盖；transport 构造函数不再接收 `lang`。
+- **SocketIO**：namespace 创建 MessageQueue 仅传 `{ logger }`；socket 与
+  message-queue 直接调用 `$t(...)`。
+- **测试**：logger-debug-i18n 使用 `$t`；optimization-new 中 MessageQueue/Server
+  lang/WebSocketBatchSender 测试更新（setTr → setLang，MessageQueue 不再传
+  tr）。
+
+---
+
 ## [1.0.5] - 2026-02-18
 
 ### 修复

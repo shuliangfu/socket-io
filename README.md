@@ -12,6 +12,9 @@
 **Changelog**: [EN](./docs/en-US/CHANGELOG.md) |
 [中文](./docs/zh-CN/CHANGELOG.md)
 
+**Latest (v1.0.6 - 2026-02-18)**: Removed `tr` method; i18n uses `$t` from
+`i18n.ts` only. [Full changelog](./docs/en-US/CHANGELOG.md).
+
 ---
 
 ## Features
