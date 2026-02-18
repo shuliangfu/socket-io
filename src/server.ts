@@ -11,7 +11,11 @@ import {
 } from "@dreamer/runtime-adapter";
 import { $t, setSocketIoLocale } from "./i18n.ts";
 import { MemoryAdapter } from "./adapters/memory.ts";
-import type { AdapterMessage, SocketIOAdapter } from "./adapters/types.ts";
+import type {
+  AdapterMessage,
+  AdapterSocketLike,
+  SocketIOAdapter,
+} from "./adapters/types.ts";
 import { CompressionManager } from "./compression/compression-manager.ts";
 import { EncryptionManager } from "./encryption/encryption-manager.ts";
 import { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
@@ -22,13 +26,13 @@ import { EngineSocket } from "./engine/socket.ts";
 import { WebSocketTransport } from "./engine/websocket-transport.ts";
 import { HardwareAccelerator } from "./hardware-accel/accelerator.ts";
 import { decodePacket, encodePacket } from "./socketio/parser.ts";
+import type { ConnectionEventListener } from "./socketio/namespace.ts";
 import { Namespace } from "./socketio/namespace.ts";
 import { SocketIOSocket } from "./socketio/socket.ts";
 import { StreamPacketProcessor } from "./streaming/stream-parser.ts";
 import {
   EnginePacketType,
   Handshake,
-  ServerEventListener,
   ServerOptions,
   TransportType,
 } from "./types.ts";
@@ -55,8 +59,8 @@ export class Server {
   private engineSockets: Map<string, EngineSocket> = new Map();
   /** 命名空间映射 */
   private namespaces: Map<string, Namespace> = new Map();
-  /** 事件监听器 */
-  private listeners: Map<string, ServerEventListener[]> = new Map();
+  /** connection 事件监听器（委托给默认命名空间） */
+  private listeners: Map<string, ConnectionEventListener[]> = new Map();
   /** HTTP 服务器句柄 */
   private httpServer?: ServeHandle;
   /** 轮询传输映射（Socket ID -> PollingTransport） */
@@ -275,7 +279,10 @@ export class Server {
       }
     }
 
-    const initResult = this.adapter.init(this.serverId, sockets);
+    const initResult = this.adapter.init(
+      this.serverId,
+      sockets as Map<string, AdapterSocketLike>,
+    );
     if (initResult instanceof Promise) {
       await initResult;
     }
@@ -713,7 +720,7 @@ export class Server {
    * });
    * ```
    */
-  on(event: "connection", listener: ServerEventListener): void {
+  on(event: "connection", listener: ConnectionEventListener): void {
     if (event !== "connection") {
       throw new Error(
         this.tr("log.socketio.unsupportedEvent", `不支持的事件: ${event}`, {

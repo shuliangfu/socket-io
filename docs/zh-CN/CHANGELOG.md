@@ -7,6 +7,39 @@
 
 ---
 
+## [1.0.5] - 2026-02-18
+
+### 修复
+
+- **客户端打包（esbuild）**：修复打包客户端时出现 “No matching export for
+  EnginePacketType / SocketIOPacketType” 的问题。根因是循环依赖： `types.ts` →
+  `socketio/socket.ts` → `types.ts`，导致解析器加载 `types.ts`
+  时协议类型尚未就绪。现改为由客户端从独立的
+  `src/client/types.ts`（无包内依赖）导入协议类型，其余类型仍从 `../types.ts`
+  导入；主 `types.ts` 不再依赖 `socketio/socket.ts`。
+
+### 变更
+
+- **客户端**：新增 `src/client/types.ts`，定义 `EnginePacketType`、
+  `SocketIOPacketType`、`EnginePacket`、`SocketIOPacket`。所有 client 模块从
+  `./types.ts` 导入上述类型，不再从 `../types.ts` 导入。
+- **类型**：主 `types.ts` 保留相同协议类型定义供服务端/适配器使用；引入
+  `ServerSocketLike` 并移除对 `SocketIOSocket` 的导入以打破循环。
+  `ConnectionEventListener`（使用 `SocketIOSocket` 的 connection 回调类型）改在
+  `socketio/namespace.ts` 中定义并导出，`Server` 与 `Namespace` 的
+  `"connection"` 事件使用该类型。
+- **适配器**：`SocketIOAdapter.init()` 的签名改为使用 `AdapterSocketLike` 替代
+  `SocketIOSocket`；具体适配器（memory、redis、mongodb）内部做类型断言，避免适配器依赖
+  `socketio/socket`，保持依赖无环。
+
+### 新增
+
+- **导出**：在 `deno.json` 中新增可选子路径
+  `./client/types`，便于直接导入客户端协议类型（如
+  `import ... from "jsr:@dreamer/socket-io/client/types"`）。客户端打包不依赖此导出。
+
+---
+
 ## [1.0.4] - 2026-02-18
 
 ### 变更

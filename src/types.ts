@@ -1,6 +1,5 @@
 import type { Logger } from "@dreamer/logger";
 import type { SocketIOAdapter } from "./adapters/types.ts";
-import type { SocketIOSocket } from "./socketio/socket.ts";
 
 /**
  * @fileoverview Socket.IO 类型定义
@@ -173,15 +172,23 @@ export type SocketEventListenerWithData<T = unknown> = (
 ) => void;
 
 /**
+ * 服务端 Socket 类型占位（避免 types.ts 依赖 socketio/socket 产生循环依赖，供 ServerEventListener/Middleware 使用）
+ * 仅保留可选 id，使 SocketIOSocket 可赋值给本类型
+ */
+export interface ServerSocketLike {
+  id?: string;
+}
+
+/**
  * 服务器事件监听器
  */
-export type ServerEventListener = (socket: SocketIOSocket) => void;
+export type ServerEventListener = (socket: ServerSocketLike) => void;
 
 /**
  * 中间件函数
  */
 export type Middleware = (
-  socket: SocketIOSocket,
+  socket: ServerSocketLike,
   next: (error?: Error) => void,
 ) => void | Promise<void>;
 

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.5] - 2026-02-18
+
+### Fixed
+
+- **Client bundle (esbuild)**: Resolved "No matching export for EnginePacketType
+  / SocketIOPacketType" when bundling the client. Root cause was a circular
+  dependency: `types.ts` → `socketio/socket.ts` → `types.ts`, so protocol
+  exports were not yet available when the resolver loaded `types.ts`. Client
+  code now imports protocol types from a dedicated `src/client/types.ts` (no
+  package-internal imports), and other types from `../types.ts`; the main
+  `types.ts` no longer depends on `socketio/socket.ts`.
+
+### Changed
+
+- **Client**: Added `src/client/types.ts` with `EnginePacketType`,
+  `SocketIOPacketType`, `EnginePacket`, and `SocketIOPacket`. All client modules
+  import these from `./types.ts` instead of `../types.ts`.
+- **Types**: Main `types.ts` keeps the same protocol type definitions for
+  server/adapters; introduced `ServerSocketLike` and removed the import of
+  `SocketIOSocket` to break the cycle. `ConnectionEventListener` (connection
+  callback type using `SocketIOSocket`) is now defined and exported from
+  `socketio/namespace.ts`; `Server` and `Namespace` use it for the
+  `"connection"` event.
+- **Adapters**: `SocketIOAdapter.init()` now uses `AdapterSocketLike` instead of
+  `SocketIOSocket` in the type signature; concrete adapters (memory, redis,
+  mongodb) cast internally. This avoids adapters depending on `socketio/socket`
+  and keeps the dependency graph acyclic.
+
+### Added
+
+- **Exports**: Optional subpath `./client/types` in `deno.json` for direct
+  import of client protocol types (e.g.
+  `import ... from
+  "jsr:@dreamer/socket-io/client/types"`). Not required for
+  client bundling.
+
+---
+
 ## [1.0.4] - 2026-02-18
 
 ### Changed

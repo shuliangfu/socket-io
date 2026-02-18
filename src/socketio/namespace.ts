@@ -8,15 +8,16 @@ import type { HardwareAccelerator } from "../hardware-accel/accelerator.ts";
 import type { SocketIOAdapter } from "../adapters/types.ts";
 import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
-import {
-  Middleware,
-  ServerEventListener,
-  SocketIOPacketType,
-} from "../types.ts";
+import { Middleware, SocketIOPacketType } from "../types.ts";
 import { MessageCache } from "./message-cache.ts";
 import { MessageQueue } from "./message-queue.ts";
 import { SocketPool } from "./socket-pool.ts";
 import { type RoomManager, SocketIOSocket } from "./socket.ts";
+
+/**
+ * connection 事件监听器类型（使用 SocketIOSocket，便于用户使用 socket.on/emit 等）
+ */
+export type ConnectionEventListener = (socket: SocketIOSocket) => void;
 
 /**
  * Socket.IO 命名空间
@@ -30,8 +31,8 @@ export class Namespace {
   private rooms: Map<string, Set<string>> = new Map();
   /** Socket 到房间的映射（Socket ID -> Set<房间名称>） */
   private socketToRooms: Map<string, Set<string>> = new Map();
-  /** 事件监听器 */
-  private listeners: ServerEventListener[] = [];
+  /** connection 事件监听器 */
+  private listeners: ConnectionEventListener[] = [];
   /** 中间件列表 */
   private middlewares: Middleware[] = [];
   /** 消息缓存 */
@@ -148,7 +149,7 @@ export class Namespace {
    * });
    * ```
    */
-  on(event: "connection", listener: ServerEventListener): void {
+  on(event: "connection", listener: ConnectionEventListener): void {
     if (event !== "connection") {
       throw new Error(`不支持的事件: ${event}`);
     }

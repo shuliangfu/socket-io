@@ -3,7 +3,7 @@
  * 定义客户端传输层的通用接口
  */
 
-import { EnginePacket } from "../types.ts";
+import type { EnginePacket } from "./types.ts";
 
 /**
  * 传输层事件监听器

@@ -779,9 +779,11 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.0.4)**：许可证变更为 Apache 2.0。**i18n（源码）**：服务端集成
-@dreamer/i18n；ServerOptions.lang；日志/错误走 $t()。**i18n（文档）**：完整
-中英文翻译。客户端导入路径调整，便于仅打客户端包。测试报告已更新（203 通过）。
+**最新 (v1.0.5 - 2026-02-18)**：**修复**：客户端打包（esbuild）时
+EnginePacketType/SocketIOPacketType 导出解析失败，新增 `src/client/types.ts`
+并打破循环依赖。**变更**：客户端从 `./types.ts` 导入协议类型；主 `types.ts` 使用
+`ServerSocketLike`/`AdapterSocketLike`；`ConnectionEventListener` 由 namespace
+导出。**新增**：导出子路径 `./client/types`。
 
 ---
 

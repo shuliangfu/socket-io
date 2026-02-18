@@ -6,11 +6,10 @@
 import { decodePacket, encodePacket } from "./socketio-parser.ts";
 import {
   EnginePacketType,
-  SocketData,
-  SocketEventListener,
   SocketIOPacket,
   SocketIOPacketType,
-} from "../types.ts";
+} from "./types.ts";
+import { SocketData, SocketEventListener } from "../types.ts";
 import { ClientTransport } from "./transport.ts";
 
 /**

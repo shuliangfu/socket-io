@@ -321,10 +321,10 @@ export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
    */
   async init(
     serverId: string,
-    sockets: Map<string, SocketIOSocket>,
+    sockets: Map<string, import("./types.ts").AdapterSocketLike>,
   ): Promise<void> {
     this.serverId = serverId;
-    this.sockets = sockets;
+    this.sockets = sockets as Map<string, SocketIOSocket>;
 
     await this.connectMongoDB();
     await this.initializeCollections();

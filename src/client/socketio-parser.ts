@@ -3,7 +3,7 @@
  * 处理 Socket.IO 数据包的编码和解码
  */
 
-import { SocketIOPacket, SocketIOPacketType } from "../types.ts";
+import { SocketIOPacket, SocketIOPacketType } from "./types.ts";
 
 /**
  * Socket.IO 协议版本

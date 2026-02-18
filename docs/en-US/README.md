@@ -464,10 +464,12 @@ See [TEST_REPORT.md](./TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./CHANGELOG.md) for full history.
 
-**Latest (v1.0.4)**: License changed to Apache 2.0. **i18n (source)**: Server
-integrates @dreamer/i18n; `ServerOptions.lang`; log/error messages use $t().
-**i18n (docs)**: full en-US/zh-CN translations. Client import paths refactored
-for client-only bundling. Test report updated (203 passed).
+**Latest (v1.0.5 - 2026-02-18)**: **Fixed**: Client bundle (esbuild) "No
+matching export for EnginePacketType/SocketIOPacketType" by adding
+`src/client/types.ts` and breaking circular dependency. **Changed**: Client
+imports protocol types from `./types.ts`; main `types.ts` uses
+`ServerSocketLike`/`AdapterSocketLike`; `ConnectionEventListener` from
+namespace. **Added**: Export `./client/types`.
 
 ---
 
