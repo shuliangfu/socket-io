@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.6] - 2026-02-18
+
+### Removed
+
+- **`tr` method and all references**: Server no longer exposes `tr()`. Engine,
+  socketio (namespace, message-queue, socket), and compression use package `$t`
+  from `i18n.ts` only. No `tr` or `lang` passed to constructors; locale is set
+  once at Server construction via `setSocketIoLocale(options.lang)`.
+
+### Changed
+
+- **Server**: Replaced all `this.tr(...)` with
+  `$t(key, params, this.options.lang)`. Removed `tr` from BatchHeartbeatManager,
+  CompressionManager, EngineSocket, PollingTransport, WebSocketTransport,
+  Namespace MessageQueue options.
+- **Engine**: heartbeat-manager, transport, socket, websocket-transport,
+  websocket-batch-sender use `$t(key)` (no lang param). WebSocketBatchSender
+  keeps `setLang()` for optional override; transport constructors no longer take
+  `lang`.
+- **SocketIO**: namespace creates MessageQueue with `{ logger }` only; socket
+  and message-queue call `$t(...)` directly.
+- **Tests**: logger-debug-i18n uses `$t`; optimization-new MessageQueue/Server
+  lang/WebSocketBatchSender tests updated (setTr → setLang, MessageQueue without
+  tr).
+
+---
+
 ## [1.0.5] - 2026-02-18
 
 ### Fixed
