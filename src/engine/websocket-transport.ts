@@ -4,6 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { $t } from "../i18n.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { decodePacket, encodePacket } from "./parser.ts";
 import { Transport } from "./transport.ts";
@@ -38,22 +39,13 @@ export class WebSocketTransport extends Transport {
     compressionManager?: CompressionManager,
     encryptionManager?: EncryptionManager,
     logger?: Logger,
-    tr?: (
-      key: string,
-      fallback: string,
-      params?: Record<string, string | number | boolean>,
-    ) => string,
   ) {
-    super(logger, tr);
+    super(logger);
     this.ws = ws;
     this.compressionManager = compressionManager;
     this.encryptionManager = encryptionManager;
-    // 将 logger 和 tr 传递给静态 batchSender（首次创建时设置）
     if (logger) {
       WebSocketTransport.batchSender.setLogger(logger);
-    }
-    if (tr) {
-      WebSocketTransport.batchSender.setTr(tr);
     }
     this.setupListeners();
   }
@@ -101,10 +93,7 @@ export class WebSocketTransport extends Transport {
             // 解密失败，可能是未加密的消息或密钥不匹配
             // 如果是加密消息但解密失败，记录错误
             if (this.encryptionManager.isEncrypted(data)) {
-              const msg = this.tr?.(
-                "log.socketioEngine.decryptFailed",
-                "消息解密失败",
-              ) ?? "消息解密失败";
+              const msg = $t("log.socketioEngine.decryptFailed");
               (this.logger?.error ?? console.error)(msg, error);
               this.emit({
                 type: EnginePacketType.CLOSE,
@@ -119,10 +108,7 @@ export class WebSocketTransport extends Transport {
         const packet = decodePacket(data);
         this.emit(packet);
       } catch (error) {
-        const msg = this.tr?.(
-          "log.socketioEngine.wsParseError",
-          "WebSocket 消息解析错误",
-        ) ?? "WebSocket 消息解析错误";
+        const msg = $t("log.socketioEngine.wsParseError");
         (this.logger?.error ?? console.error)(msg, error);
         this.emit({
           type: EnginePacketType.CLOSE,
@@ -141,10 +127,7 @@ export class WebSocketTransport extends Transport {
 
     // 监听错误
     this.ws.addEventListener("error", (error) => {
-      const msg = this.tr?.(
-        "log.socketioEngine.wsError",
-        "WebSocket 错误",
-      ) ?? "WebSocket 错误";
+      const msg = $t("log.socketioEngine.wsError");
       (this.logger?.error ?? console.error)(msg, error);
       this.closed = true;
       this.emit({
@@ -182,10 +165,7 @@ export class WebSocketTransport extends Transport {
         WebSocketTransport.batchSender.add(this.ws, encoded, 0);
       }
     } catch (error) {
-      const msg = this.tr?.(
-        "log.socketioEngine.wsSendError",
-        "WebSocket 发送错误",
-      ) ?? "WebSocket 发送错误";
+      const msg = $t("log.socketioEngine.wsSendError");
       (this.logger?.error ?? console.error)(msg, error);
       this.closed = true;
       this.emit({

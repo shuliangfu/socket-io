@@ -39,13 +39,8 @@ export class PollingTransport extends Transport {
     timeout: number = 60000,
     encryptionManager?: EncryptionManager,
     logger?: Logger,
-    tr?: (
-      key: string,
-      fallback: string,
-      params?: Record<string, string | number | boolean>,
-    ) => string,
   ) {
-    super(logger, tr);
+    super(logger);
     this.timeout = timeout;
     this.encryptionManager = encryptionManager;
   }

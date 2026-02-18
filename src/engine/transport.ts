@@ -4,6 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { $t } from "../i18n.ts";
 import { EnginePacket } from "../types.ts";
 
 /**
@@ -23,28 +24,13 @@ export abstract class Transport {
   protected sendQueue: EnginePacket[] = [];
   /** Logger 实例（可选） */
   protected logger?: Logger;
-  /** 翻译函数（可选，用于 i18n） */
-  protected tr?: (
-    key: string,
-    fallback: string,
-    params?: Record<string, string | number | boolean>,
-  ) => string;
 
   /**
    * 创建传输层
    * @param logger Logger 实例（可选），用于统一日志输出
-   * @param tr 翻译函数（可选），用于错误信息国际化
    */
-  constructor(
-    logger?: Logger,
-    tr?: (
-      key: string,
-      fallback: string,
-      params?: Record<string, string | number | boolean>,
-    ) => string,
-  ) {
+  constructor(logger?: Logger) {
     this.logger = logger;
-    this.tr = tr;
   }
 
   /**
@@ -92,10 +78,7 @@ export abstract class Transport {
       try {
         listener(packet);
       } catch (error) {
-        const msg = this.tr?.(
-          "log.socketioEngine.transportListenerError",
-          "传输层事件监听器错误",
-        ) ?? "传输层事件监听器错误";
+        const msg = $t("log.socketioEngine.transportListenerError");
         (this.logger?.error ?? console.error)(msg, error);
       }
     }

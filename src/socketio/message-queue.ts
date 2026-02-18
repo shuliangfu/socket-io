@@ -4,6 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { $t } from "../i18n.ts";
 import { SocketIOSocket } from "./socket.ts";
 
 /**
@@ -29,35 +30,21 @@ export class MessageQueue {
   private readonly batchSize: number;
   /** Logger 实例（可选） */
   private readonly logger?: Logger;
-  /** 翻译函数（可选，用于错误信息国际化） */
-  private readonly tr?: (
-    key: string,
-    fallback: string,
-    params?: Record<string, string | number | boolean>,
-  ) => string;
 
   /**
    * 创建消息队列
    * @param maxSize 最大队列大小（默认：10000）
    * @param batchSize 批量处理大小（默认：100）
-   * @param options 可选配置：logger、tr（翻译函数，用于错误信息国际化）
+   * @param options 可选配置：logger
    */
   constructor(
     maxSize: number = 10000,
     batchSize: number = 100,
-    options?: {
-      logger?: Logger;
-      tr?: (
-        key: string,
-        fallback: string,
-        params?: Record<string, string | number | boolean>,
-      ) => string;
-    },
+    options?: { logger?: Logger },
   ) {
     this.maxSize = maxSize;
     this.batchSize = batchSize;
     this.logger = options?.logger;
-    this.tr = options?.tr;
   }
 
   /**
@@ -122,10 +109,7 @@ export class MessageQueue {
             task.socket.sendRaw(task.encoded);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            const msg = this.tr?.(
-              "log.socketio.messageSendError",
-              "消息发送错误",
-            ) ?? "消息发送错误";
+            const msg = $t("log.socketio.messageSendError");
             (this.logger?.error ?? console.error)(msg, error);
           }
         }
