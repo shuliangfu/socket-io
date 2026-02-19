@@ -7,6 +7,18 @@
 
 ---
 
+## [1.0.8] - 2026-02-19
+
+### 变更
+
+- **i18n**：i18n 在加载 i18n 模块时自动初始化；`initSocketIoI18n` 不再导出。已从
+  `mod.ts` 中移除显式 `initSocketIoI18n()` 调用；`$tr`
+  调用时仍会确保完成初始化。
+- **依赖**：升级 @dreamer/runtime-adapter 至 ^1.0.15、@dreamer/test 至
+  ^1.0.11、@dreamer/crypto 至 ^1.0.1。
+
+---
+
 ## [1.0.7] - 2026-02-19
 
 ### 变更

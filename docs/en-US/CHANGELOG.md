@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.8] - 2026-02-19
+
+### Changed
+
+- **i18n**: i18n now initializes automatically when the i18n module is loaded;
+  `initSocketIoI18n` is no longer exported. Removed explicit
+  `initSocketIoI18n()` call from `mod.ts`. `$tr` still ensures init when called.
+- **Dependencies**: Bumped @dreamer/runtime-adapter to ^1.0.15, @dreamer/test to
+  ^1.0.11, @dreamer/crypto to ^1.0.1.
+
+---
+
 ## [1.0.7] - 2026-02-19
 
 ### Changed
