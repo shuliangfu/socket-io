@@ -464,12 +464,9 @@ See [TEST_REPORT.md](./TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./CHANGELOG.md) for full history.
 
-**Latest (v1.0.5 - 2026-02-18)**: **Fixed**: Client bundle (esbuild) "No
-matching export for EnginePacketType/SocketIOPacketType" by adding
-`src/client/types.ts` and breaking circular dependency. **Changed**: Client
-imports protocol types from `./types.ts`; main `types.ts` uses
-`ServerSocketLike`/`AdapterSocketLike`; `ConnectionEventListener` from
-namespace. **Added**: Export `./client/types`.
+**Latest (v1.0.7 - 2026-02-19)**: **Changed** – i18n `$t` → `$tr`. **Fixed** –
+i18n lazy init so logs show translated messages. See
+[CHANGELOG.md](./CHANGELOG.md).
 
 ---
 

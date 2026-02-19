@@ -4,7 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import { EnginePacket } from "../types.ts";
 
 /**
@@ -78,7 +78,7 @@ export abstract class Transport {
       try {
         listener(packet);
       } catch (error) {
-        const msg = $t("log.socketioEngine.transportListenerError");
+        const msg = $tr("log.socketioEngine.transportListenerError");
         (this.logger?.error ?? console.error)(msg, error);
       }
     }

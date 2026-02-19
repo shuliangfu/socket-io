@@ -3,7 +3,7 @@
  * 处理 Engine.IO 数据包的编码和解码
  */
 
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 
 /**
@@ -41,7 +41,7 @@ export function encodePacket(packet: EnginePacket): string {
  */
 export function decodePacket(encoded: string): EnginePacket {
   if (encoded.length === 0) {
-    throw new Error($t("errors.emptyPacket"));
+    throw new Error($tr("errors.emptyPacket"));
   }
 
   const type = parseInt(encoded[0], 10) as EnginePacketType;
@@ -104,7 +104,7 @@ export function decodePayload(payload: string): EnginePacket[] {
     const length = parseInt(payload.slice(i, colonIndex), 10);
     if (isNaN(length) || length < 0) {
       throw new Error(
-        $t("errors.invalidPacketLength", {
+        $tr("errors.invalidPacketLength", {
           length: payload.slice(i, colonIndex),
         }),
       );
@@ -114,7 +114,7 @@ export function decodePayload(payload: string): EnginePacket[] {
     const start = colonIndex + 1;
     const end = start + length;
     if (end > payload.length) {
-      throw new Error($t("errors.packetLengthOutOfRange"));
+      throw new Error($tr("errors.packetLengthOutOfRange"));
     }
 
     const packetData = payload.slice(start, end);

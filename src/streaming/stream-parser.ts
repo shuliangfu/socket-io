@@ -4,7 +4,7 @@
  */
 
 import { decodePacket } from "../engine/parser.ts";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 
 /**
@@ -138,7 +138,7 @@ export class StreamParser {
           // 检查是否超过最大大小
           if (this.receivedLength > this.maxPacketSize) {
             throw new Error(
-              $t("errors.packetSizeExceeded", {
+              $tr("errors.packetSizeExceeded", {
                 receivedLength: this.receivedLength,
                 maxPacketSize: this.maxPacketSize,
               }),
@@ -235,8 +235,8 @@ export class StreamPacketProcessor {
     } catch (error) {
       const msg = this.tr?.(
         "log.socketio.streamParseError",
-        $t("log.socketio.streamParseError"),
-      ) ?? $t("log.socketio.streamParseError");
+        $tr("log.socketio.streamParseError"),
+      ) ?? $tr("log.socketio.streamParseError");
       (this.onError ?? ((e: unknown) => console.error(msg, e)))(error);
       this.parser.resetParser();
     }

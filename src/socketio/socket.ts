@@ -6,7 +6,7 @@
 import type { Logger } from "@dreamer/logger";
 import type { Server } from "../server.ts";
 import { EngineSocket } from "../engine/socket.ts";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import {
   EnginePacketType,
   Handshake,
@@ -306,7 +306,7 @@ export class SocketIOSocket {
         }
       }
     } catch (error) {
-      const msg = $t("log.socketio.packetProcessError");
+      const msg = $tr("log.socketio.packetProcessError");
       (this._logger?.error ?? console.error)(msg, error);
     }
   }
@@ -551,7 +551,7 @@ export class SocketIOSocket {
         try {
           listener(data, callback);
         } catch (error) {
-          const msg = $t("log.socketio.eventListenerError", { event });
+          const msg = $tr("log.socketio.eventListenerError", { event });
           (this._logger?.error ?? console.error)(msg, error);
         }
       }
@@ -831,7 +831,7 @@ export class SocketIOSocket {
             );
             if (result instanceof Promise) {
               result.catch((error) => {
-                const msg = $t("log.socketio.adapterRoomBroadcastFailed");
+                const msg = $tr("log.socketio.adapterRoomBroadcastFailed");
                 (this._logger?.error ?? console.error)(msg, error);
               });
             }
@@ -911,7 +911,7 @@ export class SocketIOSocket {
     const builder = {
       emit: (event: string, data?: unknown) => {
         // 如果没有指定房间，则向所有房间广播（除了排除的）
-        const msg = $t("log.socketio.exceptNeedsToOrIn");
+        const msg = $tr("log.socketio.exceptNeedsToOrIn");
         (this._logger?.warn ?? console.warn)(msg);
         this.emit(event, data);
         this._except.clear();
@@ -1073,7 +1073,7 @@ export class SocketIOSocket {
             const result = adapter.broadcast(adapterMessage);
             if (result instanceof Promise) {
               result.catch((error) => {
-                const msg = $t("log.socketio.adapterBroadcastFailed");
+                const msg = $tr("log.socketio.adapterBroadcastFailed");
                 (this._logger?.error ?? console.error)(msg, error);
               });
             }

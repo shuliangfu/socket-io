@@ -4,7 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import type { Locale } from "../i18n.ts";
 
 /**
@@ -87,7 +87,7 @@ export class WebSocketBatchSender {
             task.ws.send(task.data);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            const msg = $t("log.socketioEngine.wsSendError");
+            const msg = $tr("log.socketioEngine.wsSendError");
             (this.logger?.error ?? console.error)(msg, error);
           }
         }

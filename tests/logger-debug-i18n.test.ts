@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from "@dreamer/test";
 import type { Logger } from "@dreamer/logger";
-import { $t } from "../src/i18n.ts";
+import { $tr } from "../src/i18n.ts";
 import { Server } from "../src/mod.ts";
 import { delay, getAvailablePort } from "./test-utils.ts";
 
@@ -130,9 +130,9 @@ describe("Socket.IO logger、debug、i18n 翻译", () => {
     }, { sanitizeOps: false, sanitizeResources: false });
   });
 
-  describe("$t 翻译函数", () => {
-    it("已知 key 时 $t() 应返回包内 i18n 翻译（zh 或 en）", () => {
-      const result = $t("log.socketio.pathMismatch", { path: "/other" });
+  describe("$tr 翻译函数", () => {
+    it("已知 key 时 $tr() 应返回包内 i18n 翻译（zh 或 en）", () => {
+      const result = $tr("log.socketio.pathMismatch", { path: "/other" });
       const expected = [
         "路径不匹配 pathPrefix，返回 404",
         "Path does not match pathPrefix, returning 404",
@@ -140,14 +140,14 @@ describe("Socket.IO logger、debug、i18n 翻译", () => {
       expect(expected).toContain(result);
     });
 
-    it("未知 key 时 $t() 返回 key 或库默认行为", () => {
-      const result = $t("unknown.key.xyz", {});
+    it("未知 key 时 $tr() 返回 key 或库默认行为", () => {
+      const result = $tr("unknown.key.xyz", {});
       expect(typeof result).toBe("string");
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it("$t() 支持 params 参数替换", () => {
-      const result = $t("log.socketio.requestReceived", {
+    it("$tr() 支持 params 参数替换", () => {
+      const result = $tr("log.socketio.requestReceived", {
         method: "GET",
         path: "/socket.io/",
         search: "",
