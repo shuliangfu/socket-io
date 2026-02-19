@@ -4,7 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import { SocketIOSocket } from "./socket.ts";
 
 /**
@@ -109,7 +109,7 @@ export class MessageQueue {
             task.socket.sendRaw(task.encoded);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
-            const msg = $t("log.socketio.messageSendError");
+            const msg = $tr("log.socketio.messageSendError");
             (this.logger?.error ?? console.error)(msg, error);
           }
         }

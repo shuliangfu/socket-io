@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.7] - 2026-02-19
+
+### Changed
+
+- **i18n**: Renamed translation method from `$t` to `$tr` to avoid conflict with
+  global `$t`. Update existing code to use `$tr` for package messages.
+
+### Fixed
+
+- **i18n**: `$tr` now lazily initializes i18n on first use so log messages are
+  translated (not raw keys) when `initSocketIoI18n()` was not called (e.g. in
+  tests). Tests updated to use `$tr` instead of `$t`.
+
+---
+
 ## [1.0.6] - 2026-02-18
 
 ### Removed

@@ -3,7 +3,7 @@
  * 使用 WebAssembly 和 SIMD 指令优化计算密集型操作
  */
 
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 
 /**
  * 硬件加速器配置
@@ -40,7 +40,7 @@ export class HardwareAccelerator {
     // 尝试初始化 WebAssembly（异步）
     if (this.enableWasm) {
       this.initWasm().catch((error) => {
-        console.warn($t("warnings.wasmInitFailed"), error);
+        console.warn($tr("warnings.wasmInitFailed"), error);
       });
     }
   }
@@ -72,7 +72,7 @@ export class HardwareAccelerator {
       });
     } catch (error) {
       // WebAssembly 不可用，使用 JavaScript 实现
-      console.warn($t("warnings.wasmUnavailable"), error);
+      console.warn($tr("warnings.wasmUnavailable"), error);
     }
   }
 

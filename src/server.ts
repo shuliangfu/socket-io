@@ -9,7 +9,7 @@ import {
   type ServeHandle,
   upgradeWebSocket,
 } from "@dreamer/runtime-adapter";
-import { $t, setSocketIoLocale } from "./i18n.ts";
+import { $tr, setSocketIoLocale } from "./i18n.ts";
 import { MemoryAdapter } from "./adapters/memory.ts";
 import type {
   AdapterMessage,
@@ -208,7 +208,7 @@ export class Server {
             } catch (error) {
               // 如果处理失败，返回错误响应
               this.logger.error(
-                $t(
+                $tr(
                   "log.socketio.pollingBatchFailed",
                   { sid },
                   this.options.lang,
@@ -291,7 +291,7 @@ export class Server {
     );
 
     this.logger.info(
-      $t(
+      $tr(
         "log.socketio.serverRunning",
         { host: serverHost, port: String(serverPort), path: this.options.path },
         this.options.lang,
@@ -326,7 +326,7 @@ export class Server {
     }
 
     this.debugLog(
-      $t(
+      $tr(
         "log.socketio.requestReceived",
         { method: request.method, path, search: url.search || "" },
         this.options.lang,
@@ -336,7 +336,7 @@ export class Server {
     // 检查是否是 Socket.IO 路径
     if (!path.startsWith(this.options.path)) {
       this.debugLog(
-        $t("log.socketio.pathMismatch", { path }, this.options.lang),
+        $tr("log.socketio.pathMismatch", { path }, this.options.lang),
       );
       return new Response("Not Found", { status: 404 });
     }
@@ -353,7 +353,7 @@ export class Server {
         });
         if (request.method === "OPTIONS") {
           this.debugLog(
-            $t("log.socketio.corsPreflight", undefined, this.options.lang),
+            $tr("log.socketio.corsPreflight", undefined, this.options.lang),
           );
           return new Response(null, { status: 200, headers });
         }
@@ -365,7 +365,7 @@ export class Server {
     const transport = pathParts[0] as TransportType;
     const sid = pathParts[1];
     this.debugLog(
-      $t(
+      $tr(
         "log.socketio.parsePath",
         { transport: transport ?? "(空)", sid: sid ?? "(无)" },
         this.options.lang,
@@ -375,7 +375,7 @@ export class Server {
     // 处理轮询传输
     if (transport === "polling") {
       this.debugLog(
-        $t(
+        $tr(
           "log.socketio.pollingEnter",
           { sid: sid ?? "(无)" },
           this.options.lang,
@@ -383,7 +383,7 @@ export class Server {
       );
       const res = await this.handlePolling(request, sid);
       this.debugLog(
-        $t(
+        $tr(
           "log.socketio.pollingReturn",
           { status: String(res.status) },
           this.options.lang,
@@ -395,7 +395,7 @@ export class Server {
     // 处理 WebSocket 传输
     if (transport === "websocket") {
       this.debugLog(
-        $t(
+        $tr(
           "log.socketio.websocketEnter",
           { sid: sid ?? "(无)" },
           this.options.lang,
@@ -403,7 +403,7 @@ export class Server {
       );
       const res = this.handleWebSocket(request, sid);
       this.debugLog(
-        $t(
+        $tr(
           "log.socketio.websocketReturn",
           { status: String(res.status) },
           this.options.lang,
@@ -415,11 +415,11 @@ export class Server {
     // 处理 Engine.IO 握手
     if (path.endsWith("/") || path === this.options.path) {
       this.debugLog(
-        $t("log.socketio.handshakeStart", undefined, this.options.lang),
+        $tr("log.socketio.handshakeStart", undefined, this.options.lang),
       );
       const res = this.handleHandshake(request);
       this.debugLog(
-        $t(
+        $tr(
           "log.socketio.handshakeReturn",
           { status: String(res.status) },
           this.options.lang,
@@ -429,7 +429,7 @@ export class Server {
     }
 
     this.debugLog(
-      $t("log.socketio.noMatchBranch", undefined, this.options.lang),
+      $tr("log.socketio.noMatchBranch", undefined, this.options.lang),
     );
     return new Response("Not Found", { status: 404 });
   }
@@ -590,7 +590,7 @@ export class Server {
       return response || new Response();
     } catch (error) {
       this.logger.error(
-        $t(
+        $tr(
           "log.socketio.upgradeFailed",
           { error: String(error) },
           this.options.lang,
@@ -693,7 +693,7 @@ export class Server {
   on(event: "connection", listener: ConnectionEventListener): void {
     if (event !== "connection") {
       throw new Error(
-        $t("log.socketio.unsupportedEvent", { event }, this.options.lang),
+        $tr("log.socketio.unsupportedEvent", { event }, this.options.lang),
       );
     }
 

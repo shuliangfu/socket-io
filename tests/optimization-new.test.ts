@@ -108,11 +108,11 @@ describe("2.2 错误信息国际化 (tr)", () => {
     });
   });
 
-  describe("Server lang 选项与 $t", () => {
-    it("lang: en-US 时 $t 应返回英文", async () => {
-      const { $t, setSocketIoLocale } = await import("../src/i18n.ts");
+  describe("Server lang 选项与 $tr", () => {
+    it("lang: en-US 时 $tr 应返回英文", async () => {
+      const { $tr, setSocketIoLocale } = await import("../src/i18n.ts");
       setSocketIoLocale("en-US");
-      const result = $t("log.socketio.pathMismatch", { path: "/x" });
+      const result = $tr("log.socketio.pathMismatch", { path: "/x" });
       expect(result).toBe("Path does not match pathPrefix, returning 404");
     });
   });

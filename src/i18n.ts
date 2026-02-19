@@ -1,14 +1,13 @@
 /**
  * @module @dreamer/socket-io/i18n
  *
- * 服务端 i18n：日志、错误、警告等文案的国际化。
+ * 服务端 i18n：日志、错误、警告等文案的国际化。不挂全局，各模块通过 import $tr 使用。
  * 未传 lang 时从环境变量（LANGUAGE/LC_ALL/LANG）自动检测语言。
  */
 
 import {
-  $i18n,
-  getGlobalI18n,
-  getI18n,
+  createI18n,
+  type I18n,
   type TranslationData,
   type TranslationParams,
 } from "@dreamer/i18n";
@@ -24,11 +23,16 @@ export const DEFAULT_LOCALE: Locale = "en-US";
 
 const SOCKET_IO_LOCALES: Locale[] = ["en-US", "zh-CN"];
 
-let socketIoTranslationsLoaded = false;
+const LOCALE_DATA: Record<string, TranslationData> = {
+  "en-US": enUS as TranslationData,
+  "zh-CN": zhCN as TranslationData,
+};
+
+/** init 时创建的实例，不挂全局 */
+let socketIoI18n: I18n | null = null;
 
 /**
  * 检测当前语言：LANGUAGE > LC_ALL > LANG。
- * 未设置或不在支持列表中时返回 DEFAULT_LOCALE。
  */
 export function detectLocale(): Locale {
   const langEnv = getEnv("LANGUAGE") || getEnv("LC_ALL") || getEnv("LANG");
@@ -49,51 +53,47 @@ export function detectLocale(): Locale {
 }
 
 /**
- * 将 socket-io 文案加载到当前 I18n 实例（仅加载一次）。
- */
-export function ensureSocketIoI18n(): void {
-  if (socketIoTranslationsLoaded) return;
-  const i18n = getGlobalI18n() ?? getI18n();
-  i18n.loadTranslations("en-US", enUS as TranslationData);
-  i18n.loadTranslations("zh-CN", zhCN as TranslationData);
-  socketIoTranslationsLoaded = true;
-}
-
-/**
  * 加载文案并设置当前 locale。在入口（如 mod）中调用一次即可。
  */
 export function initSocketIoI18n(): void {
-  ensureSocketIoI18n();
-  $i18n.setLocale(detectLocale());
+  if (socketIoI18n) return;
+  const i18n = createI18n({
+    defaultLocale: DEFAULT_LOCALE,
+    fallbackBehavior: "default",
+    locales: [...SOCKET_IO_LOCALES],
+    translations: LOCALE_DATA as Record<string, TranslationData>,
+  });
+  i18n.setLocale(detectLocale());
+  socketIoI18n = i18n;
 }
 
 /**
  * 设置当前语言（供 Server 构造时 options.lang 使用）。
- * 调用后，$t() 将使用该 locale，无需每次传 lang。
  */
 export function setSocketIoLocale(lang: Locale): void {
-  ensureSocketIoI18n();
-  $i18n.setLocale(lang);
+  initSocketIoI18n();
+  if (socketIoI18n) socketIoI18n.setLocale(lang);
 }
 
 /**
- * 按 key 翻译。未传 lang 时使用当前 locale（在入口处已设置）。
- * 不要在 $t 内部调用 ensure/init；在入口调用 initSocketIoI18n()。
+ * 框架专用翻译。未传 lang 时使用当前 locale。
+ * 首次调用时若未初始化则自动调用 initSocketIoI18n()，避免在测试或未显式初始化时直接输出 key。
  */
-export function $t(
+export function $tr(
   key: string,
   params?: TranslationParams,
   lang?: Locale,
 ): string {
-  ensureSocketIoI18n();
+  if (!socketIoI18n) initSocketIoI18n();
+  if (!socketIoI18n) return key;
   if (lang !== undefined) {
-    const prev = $i18n.getLocale();
-    $i18n.setLocale(lang);
+    const prev = socketIoI18n.getLocale();
+    socketIoI18n.setLocale(lang);
     try {
-      return $i18n.t(key, params);
+      return socketIoI18n.t(key, params);
     } finally {
-      $i18n.setLocale(prev);
+      socketIoI18n.setLocale(prev);
     }
   }
-  return $i18n.t(key, params);
+  return socketIoI18n.t(key, params);
 }

@@ -4,7 +4,7 @@
  */
 
 import { decrypt, encrypt } from "@dreamer/crypto";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import type { EncryptionConfig } from "../types.ts";
 
 /**
@@ -59,7 +59,9 @@ export class EncryptionManager {
     // 确保密钥长度正确
     if (this.key.length !== 16 && this.key.length !== 32) {
       throw new Error(
-        $t("errors.keyLengthMustBe16Or32", { length: String(this.key.length) }),
+        $tr("errors.keyLengthMustBe16Or32", {
+          length: String(this.key.length),
+        }),
       );
     }
 
@@ -72,7 +74,7 @@ export class EncryptionManager {
       const requiredLength = config.algorithm.includes("128") ? 16 : 32;
       if (this.key.length !== requiredLength) {
         throw new Error(
-          $t("errors.algorithmKeyLengthMismatch", {
+          $tr("errors.algorithmKeyLengthMismatch", {
             algorithm: config.algorithm,
             requiredLength: String(requiredLength),
             currentLength: String(this.key.length),
@@ -143,7 +145,7 @@ export class EncryptionManager {
       return encrypted;
     } catch (error) {
       throw new Error(
-        $t("errors.encryptFailed", {
+        $tr("errors.encryptFailed", {
           error: error instanceof Error ? error.message : String(error),
         }),
       );
@@ -200,7 +202,7 @@ export class EncryptionManager {
       return await decrypt(ciphertext, this.key, this.algorithm);
     } catch (error) {
       throw new Error(
-        $t("errors.decryptFailed", {
+        $tr("errors.decryptFailed", {
           error: error instanceof Error ? error.message : String(error),
         }),
       );

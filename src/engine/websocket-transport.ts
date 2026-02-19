@@ -4,7 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { $t } from "../i18n.ts";
+import { $tr } from "../i18n.ts";
 import { EnginePacket, EnginePacketType } from "../types.ts";
 import { decodePacket, encodePacket } from "./parser.ts";
 import { Transport } from "./transport.ts";
@@ -93,7 +93,7 @@ export class WebSocketTransport extends Transport {
             // 解密失败，可能是未加密的消息或密钥不匹配
             // 如果是加密消息但解密失败，记录错误
             if (this.encryptionManager.isEncrypted(data)) {
-              const msg = $t("log.socketioEngine.decryptFailed");
+              const msg = $tr("log.socketioEngine.decryptFailed");
               (this.logger?.error ?? console.error)(msg, error);
               this.emit({
                 type: EnginePacketType.CLOSE,
@@ -108,7 +108,7 @@ export class WebSocketTransport extends Transport {
         const packet = decodePacket(data);
         this.emit(packet);
       } catch (error) {
-        const msg = $t("log.socketioEngine.wsParseError");
+        const msg = $tr("log.socketioEngine.wsParseError");
         (this.logger?.error ?? console.error)(msg, error);
         this.emit({
           type: EnginePacketType.CLOSE,
@@ -127,7 +127,7 @@ export class WebSocketTransport extends Transport {
 
     // 监听错误
     this.ws.addEventListener("error", (error) => {
-      const msg = $t("log.socketioEngine.wsError");
+      const msg = $tr("log.socketioEngine.wsError");
       (this.logger?.error ?? console.error)(msg, error);
       this.closed = true;
       this.emit({
@@ -165,7 +165,7 @@ export class WebSocketTransport extends Transport {
         WebSocketTransport.batchSender.add(this.ws, encoded, 0);
       }
     } catch (error) {
-      const msg = $t("log.socketioEngine.wsSendError");
+      const msg = $tr("log.socketioEngine.wsSendError");
       (this.logger?.error ?? console.error)(msg, error);
       this.closed = true;
       this.emit({
