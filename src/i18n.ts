@@ -52,10 +52,8 @@ export function detectLocale(): Locale {
   return DEFAULT_LOCALE;
 }
 
-/**
- * 加载文案并设置当前 locale。在入口（如 mod）中调用一次即可。
- */
-export function initSocketIoI18n(): void {
+/** 内部初始化，导入 i18n 时自动执行，不导出 */
+function initSocketIoI18n(): void {
   if (socketIoI18n) return;
   const i18n = createI18n({
     defaultLocale: DEFAULT_LOCALE,
@@ -66,6 +64,8 @@ export function initSocketIoI18n(): void {
   i18n.setLocale(detectLocale());
   socketIoI18n = i18n;
 }
+
+initSocketIoI18n();
 
 /**
  * 设置当前语言（供 Server 构造时 options.lang 使用）。

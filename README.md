@@ -12,8 +12,9 @@
 **Changelog**: [EN](./docs/en-US/CHANGELOG.md) |
 [中文](./docs/zh-CN/CHANGELOG.md)
 
-**Latest (v1.0.7 - 2026-02-19)**: **Changed** – i18n `$t` → `$tr`. **Fixed** –
-i18n lazy init so logs show translated messages.
+**Latest (v1.0.8 - 2026-02-19)**: **Changed** – i18n auto-initializes on module
+load; `initSocketIoI18n` no longer exported; removed explicit init from
+`mod.ts`. Dependency bumps (runtime-adapter, test, crypto).
 [Full changelog](./docs/en-US/CHANGELOG.md).
 
 ---

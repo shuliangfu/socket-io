@@ -779,8 +779,9 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.0.7 - 2026-02-19)**：**变更** – i18n `$t` → `$tr`。**修复** – i18n
-惰性初始化，日志输出翻译文案。详见 [CHANGELOG.md](./CHANGELOG.md)。
+**最新 (v1.0.8 - 2026-02-19)**：**变更** – i18n 在模块加载时自动初始化；
+`initSocketIoI18n` 不再导出；已从 `mod.ts` 移除显式初始化。依赖升级
+（runtime-adapter、test、crypto）。详见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
