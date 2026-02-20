@@ -12,9 +12,9 @@
 **Changelog**: [EN](./docs/en-US/CHANGELOG.md) |
 [中文](./docs/zh-CN/CHANGELOG.md)
 
-**Latest (v1.0.8 - 2026-02-19)**: **Changed** – i18n auto-initializes on module
-load; `initSocketIoI18n` no longer exported; removed explicit init from
-`mod.ts`. Dependency bumps (runtime-adapter, test, crypto).
+**Latest (v1.0.9 - 2026-02-20)**: **Changed** – Client package is now
+self-contained: all client types live in `src/client/types.ts`; no imports from
+root `../types.ts`. Safe for bundling client as a separate entry.
 [Full changelog](./docs/en-US/CHANGELOG.md).
 
 ---

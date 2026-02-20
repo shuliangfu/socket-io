@@ -30,8 +30,12 @@
  * ```
  */
 
+import type {
+  ClientEventListener,
+  ClientOptions,
+  TransportType,
+} from "./types.ts";
 import { EncryptionManager } from "./encryption-manager.ts";
-import { ClientEventListener, ClientOptions, TransportType } from "../types.ts";
 import { ClientMessageQueue } from "./message-queue.ts";
 import { ClientPollingTransport } from "./polling-transport.ts";
 import { SmartReconnection } from "./smart-reconnection.ts";
@@ -646,5 +650,5 @@ export { ClientTransport } from "./transport.ts";
 export { ClientWebSocketTransport } from "./websocket-transport.ts";
 
 // 导出类型
-export type { ClientEventListener, ClientOptions } from "../types.ts";
+export type { ClientEventListener, ClientOptions } from "./types.ts";
 export { TransportState } from "./transport.ts";

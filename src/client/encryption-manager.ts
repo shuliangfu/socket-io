@@ -4,7 +4,7 @@
  */
 
 import { decrypt, encrypt } from "@dreamer/crypto";
-import type { EncryptionConfig } from "../types.ts";
+import type { EncryptionConfig } from "./types.ts";
 
 /**
  * 加密缓存项
