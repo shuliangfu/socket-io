@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.10] - 2026-02-20
+
+### Changed
+
+- **Dependencies**: Bumped @dreamer/crypto to ^1.0.2.
+
+---
+
 ## [1.0.9] - 2026-02-20
 
 ### Changed
