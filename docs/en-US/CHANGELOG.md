@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.11] - 2026-02-20
+
+### Changed
+
+- **Encryption**: Client and server encryption managers now import
+  `decrypt`/`encrypt` from `@dreamer/crypto/client` instead of
+  `@dreamer/crypto`, so client bundles no longer pull in i18n/locales and avoid
+  browser parse errors.
+
+---
+
 ## [1.0.10] - 2026-02-20
 
 ### Changed

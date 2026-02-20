@@ -3,7 +3,7 @@
  * 提供消息加密和解密功能，支持客户端加密、服务端自动解密
  */
 
-import { decrypt, encrypt } from "@dreamer/crypto";
+import { decrypt, encrypt } from "@dreamer/crypto/client";
 import type { EncryptionConfig } from "./types.ts";
 
 /**
