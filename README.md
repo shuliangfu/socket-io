@@ -12,10 +12,8 @@
 **Changelog**: [EN](./docs/en-US/CHANGELOG.md) |
 [中文](./docs/zh-CN/CHANGELOG.md)
 
-**Latest (v1.0.9 - 2026-02-20)**: **Changed** – Client package is now
-self-contained: all client types live in `src/client/types.ts`; no imports from
-root `../types.ts`. Safe for bundling client as a separate entry.
-[Full changelog](./docs/en-US/CHANGELOG.md).
+**Latest (v1.0.10 - 2026-02-20)**: **Changed** – Bumped @dreamer/crypto to
+^1.0.2. [Full changelog](./docs/en-US/CHANGELOG.md).
 
 ---
 
