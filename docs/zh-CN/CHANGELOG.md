@@ -7,6 +7,19 @@
 
 ---
 
+## [1.0.9] - 2026-02-20
+
+### 变更
+
+- **客户端自包含**：客户端包不再从根目录 `../types.ts`
+  引用类型。所有客户端类型（`SocketData`、`SocketEventListener`、`EncryptionConfig`、`TransportType`、`ClientOptions`、`ClientEventListener`）现均在
+  `src/client/types.ts`
+  中定义。`client/encryption-manager.ts`、`client/mod.ts`、`client/socket.ts`
+  仅从 `./types.ts` 引用，客户端子树不依赖服务端或根
+  types，便于单独打包或作为独立入口使用。
+
+---
+
 ## [1.0.8] - 2026-02-19
 
 ### 变更

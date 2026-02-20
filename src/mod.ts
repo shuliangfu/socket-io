@@ -31,6 +31,7 @@
  */
 
 // 导出类型
+export type { ConnectionEventListener } from "./socketio/namespace.ts";
 export type {
   ClientEventListener,
   ClientOptions,
@@ -42,28 +43,27 @@ export type {
   SocketEventListener,
   TransportType,
 } from "./types.ts";
-export type { ConnectionEventListener } from "./socketio/namespace.ts";
 
 // 导出主要类
 export { Server } from "./server.ts";
-export { Namespace } from "./socketio/namespace.ts";
-export { SocketIOSocket } from "./socketio/socket.ts";
 export { MessageCache } from "./socketio/message-cache.ts";
-export { SocketPool } from "./socketio/socket-pool.ts";
 export { MessageQueue } from "./socketio/message-queue.ts";
+export { Namespace } from "./socketio/namespace.ts";
 export { ParserCache } from "./socketio/parser-cache.ts";
+export { SocketPool } from "./socketio/socket-pool.ts";
+export { SocketIOSocket } from "./socketio/socket.ts";
 
 // 导出 Engine.IO 相关
+export { ClientMessageQueue } from "./client/message-queue.ts";
+export { SmartReconnection } from "./client/smart-reconnection.ts";
+export { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
+export { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts";
+export { PollingBatchHandler } from "./engine/polling-batch-handler.ts";
 export { PollingTransport } from "./engine/polling-transport.ts";
 export { EngineSocket } from "./engine/socket.ts";
 export { Transport } from "./engine/transport.ts";
-export { WebSocketTransport } from "./engine/websocket-transport.ts";
-export { BatchHeartbeatManager } from "./engine/heartbeat-manager.ts";
-export { PollingBatchHandler } from "./engine/polling-batch-handler.ts";
-export { AdaptivePollingTimeout } from "./engine/adaptive-polling-timeout.ts";
 export { WebSocketBatchSender } from "./engine/websocket-batch-sender.ts";
-export { ClientMessageQueue } from "./client/message-queue.ts";
-export { SmartReconnection } from "./client/smart-reconnection.ts";
+export { WebSocketTransport } from "./engine/websocket-transport.ts";
 
 // 导出压缩相关
 export { CompressionManager } from "./compression/compression-manager.ts";

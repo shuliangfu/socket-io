@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.9] - 2026-02-20
+
+### Changed
+
+- **Client self-contained**: The client package no longer imports from root
+  `../types.ts`. All client types (`SocketData`, `SocketEventListener`,
+  `EncryptionConfig`, `TransportType`, `ClientOptions`, `ClientEventListener`)
+  are now defined in `src/client/types.ts`. `client/encryption-manager.ts`,
+  `client/mod.ts`, and `client/socket.ts` import from `./types.ts` only, so the
+  client subtree has no dependency on server or root types and is safe for
+  bundling as a separate entry.
+
+---
+
 ## [1.0.8] - 2026-02-19
 
 ### Changed

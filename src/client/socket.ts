@@ -4,13 +4,13 @@
  */
 
 import { decodePacket, encodePacket } from "./socketio-parser.ts";
+import type { SocketData, SocketEventListener } from "./types.ts";
+import { ClientTransport } from "./transport.ts";
 import {
   EnginePacketType,
   SocketIOPacket,
   SocketIOPacketType,
 } from "./types.ts";
-import { SocketData, SocketEventListener } from "../types.ts";
-import { ClientTransport } from "./transport.ts";
 
 /**
  * Socket.IO 客户端 Socket

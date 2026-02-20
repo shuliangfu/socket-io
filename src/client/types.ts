@@ -54,3 +54,76 @@ export interface SocketIOPacket {
   /** 附件数量（二进制数据） */
   attachments?: number;
 }
+
+/**
+ * Socket 数据存储（客户端 Socket 的 data 字段）
+ */
+export interface SocketData {
+  [key: string]: unknown;
+}
+
+/**
+ * Socket 事件监听器（客户端 Socket.on 的回调类型）
+ * @param data - 事件负载（emit 时传入的 payload）
+ * @param callback - 可选 ack 回调
+ */
+export type SocketEventListener = (
+  data?: unknown,
+  callback?: (response: unknown) => void,
+) => void;
+
+/**
+ * 加密配置（仅客户端使用，与根 types 解耦）
+ */
+export interface EncryptionConfig {
+  /** 加密密钥（Uint8Array 或字符串） */
+  key: Uint8Array | string;
+  /** 加密算法（默认：根据密钥长度自动选择） */
+  algorithm?: "aes-256-gcm" | "aes-128-gcm" | "aes-256-cbc" | "aes-128-cbc";
+  /** 是否启用加密（默认：true） */
+  enabled?: boolean;
+  /** 加密缓存大小（默认：1000） */
+  cacheSize?: number;
+  /** 缓存过期时间（毫秒，默认：60000） */
+  cacheTTL?: number;
+}
+
+/**
+ * 传输方式类型
+ */
+export type TransportType = "websocket" | "polling";
+
+/**
+ * 客户端配置选项（仅客户端使用，与根 types 解耦）
+ */
+export interface ClientOptions {
+  /** 服务器 URL */
+  url: string;
+  /** 命名空间（默认："/"） */
+  namespace?: string;
+  /** 查询参数 */
+  query?: Record<string, string>;
+  /** 是否自动连接（默认：true） */
+  autoConnect?: boolean;
+  /** 是否自动重连（默认：true） */
+  autoReconnect?: boolean;
+  /** 重连延迟（毫秒，默认：1000） */
+  reconnectionDelay?: number;
+  /** 最大重连延迟（毫秒，默认：5000） */
+  reconnectionDelayMax?: number;
+  /** 重连尝试次数（默认：Infinity） */
+  reconnectionAttempts?: number;
+  /** 允许的传输方式（默认：["websocket", "polling"]） */
+  transports?: TransportType[];
+  /** 是否强制使用轮询（默认：false） */
+  forceNew?: boolean;
+  /** 超时时间（毫秒，默认：20000） */
+  timeout?: number;
+  /** 加密配置（可选，用于消息加密） */
+  encryption?: EncryptionConfig;
+}
+
+/**
+ * 客户端事件监听器（Client.on 的回调类型）
+ */
+export type ClientEventListener = (data?: unknown) => void;

@@ -464,9 +464,9 @@ See [TEST_REPORT.md](./TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./CHANGELOG.md) for full history.
 
-**Latest (v1.0.7 - 2026-02-19)**: **Changed** – i18n `$t` → `$tr`. **Fixed** –
-i18n lazy init so logs show translated messages. See
-[CHANGELOG.md](./CHANGELOG.md).
+**Latest (v1.0.9 - 2026-02-20)**: **Changed** – Client package is now
+self-contained: all client types in `src/client/types.ts`; no imports from root
+`../types.ts`. See [CHANGELOG.md](./CHANGELOG.md).
 
 ---
 
