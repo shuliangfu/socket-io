@@ -209,6 +209,11 @@ export class Client {
       // 传输层会缓冲该包，待 ClientSocket 注册监听器时再投递（见 ClientTransport.packetBuffer）
       await this.transport.connect(url);
 
+      // 若在 await 期间被 disconnect()，transport 已被置空，直接返回避免 null 报错
+      if (this.transport === null) {
+        return;
+      }
+
       this.socket = new ClientSocket(this.transport, this.options.namespace);
 
       // 监听 Socket 事件

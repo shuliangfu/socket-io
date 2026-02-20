@@ -7,6 +7,20 @@
 
 ---
 
+## [1.0.12] - 2026-02-20
+
+### 修复
+
+- **Client**：在 `Client.connect()` 中，`await this.transport.connect(url)`
+  结束后，若在 await 期间调用了 `disconnect()`（如组件卸载或 effect
+  清理），`this.transport` 可能已被置为 `null`，随后用 null 创建 `ClientSocket`
+  会触发
+  `TypeError: Cannot read properties of
+  null (reading 'on')`。现增加判空：await
+  后若 `this.transport === null` 则直接返回，避免该报错。
+
+---
+
 ## [1.0.11] - 2026-02-20
 
 ### 变更

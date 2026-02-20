@@ -3,7 +3,7 @@
 > 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和
 > Bun，提供完整的实时双向通信解决方案
 
-[English](../en-US/README.md) | 中文 (Chinese)
+[English](../../README.md) | 中文 (Chinese)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)

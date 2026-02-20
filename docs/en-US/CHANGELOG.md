@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.12] - 2026-02-20
+
+### Fixed
+
+- **Client**: In `Client.connect()`, after `await this.transport.connect(url)`,
+  if `disconnect()` was called during the await (e.g. component unmount or
+  effect cleanup), `this.transport` could be set to `null`. The code then
+  created `ClientSocket` with a null transport, causing
+  `TypeError: Cannot read
+  properties of null (reading 'on')`. A guard now
+  returns early when `this.transport === null` after the await, avoiding the
+  crash.
+
+---
+
 ## [1.0.11] - 2026-02-20
 
 ### Changed
