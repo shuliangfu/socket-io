@@ -12,8 +12,9 @@
 **Changelog**: [EN](./docs/en-US/CHANGELOG.md) |
 [中文](./docs/zh-CN/CHANGELOG.md)
 
-**Latest (v1.0.10 - 2026-02-20)**: **Changed** – Bumped @dreamer/crypto to
-^1.0.2. [Full changelog](./docs/en-US/CHANGELOG.md).
+**Latest (v1.0.11 - 2026-02-20)**: **Changed** – Encryption uses
+@dreamer/crypto/client to avoid i18n in client bundles.
+[Full changelog](./docs/en-US/CHANGELOG.md).
 
 ---
 
