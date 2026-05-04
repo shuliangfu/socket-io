@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2026-05-04
+
+### Fixed
+
+- **Engine / adapters / compression**: Replaced
+  `(logger?.error ?? console.error)(...)` and
+  `(logger?.warn ?? console.warn)(...)` call patterns with bound helper calls.
+  Extracting `logger.error` / `logger.warn` from the instance loses `this`,
+  which crashed with `Cannot read properties of undefined (reading 'log')` on
+  WebSocket error paths (and similarly for other logging sites).
+
+---
+
 ## [1.0.12] - 2026-02-20
 
 ### Fixed

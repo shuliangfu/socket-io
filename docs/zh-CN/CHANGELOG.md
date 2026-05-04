@@ -7,6 +7,18 @@
 
 ---
 
+## [1.1.0] - 2026-05-04
+
+### 修复
+
+- **Engine / 适配器 / 压缩**：移除
+  `(logger?.error ?? console.error)(…)`、`(logger?.warn ?? console.warn)(…)`
+  这类写法，改为在 Logger 实例上安全调用。原先会把 `error`/`warn`
+  方法从实例上拆下来调用， 导致运行时丢失 `this`，在 WebSocket error 等路径触发
+  `Cannot read properties of undefined (reading 'log')`。
+
+---
+
 ## [1.0.12] - 2026-02-20
 
 ### 修复

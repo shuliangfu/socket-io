@@ -5,6 +5,7 @@
 
 import type { Logger } from "@dreamer/logger";
 import { createClient } from "redis";
+import { safeLoggerError } from "../logger-safe.ts";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
 
@@ -497,7 +498,8 @@ export class RedisAdapter<
           callback(data.message, data.serverId);
         }
       } catch (error) {
-        (this.logger?.error ?? console.error)(
+        safeLoggerError(
+          this.logger,
           this.tr(
             "log.socketioAdapter.redisParseMessageFailed",
             "Redis 消息解析错误",
