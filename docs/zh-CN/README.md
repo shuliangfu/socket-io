@@ -779,8 +779,10 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.0.9 - 2026-02-20)**：**变更** – 客户端包改为自包含：所有客户端类型
-移至 `src/client/types.ts`，不再从根 `../types.ts` 引用，便于单独打包。 详见
+**最新 (v1.1.0 - 2026-05-04)**：**修复** – 用安全封装替换未绑定上下文的
+`(logger?.error ?? console.error)(…)`、`(logger?.warn ?? console.warn)(…)`
+调用， 保证 `@dreamer/logger` 在实例上调用，避免 WebSocket error 等路径出现
+`Cannot read properties of undefined (reading 'log')`。详见
 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---

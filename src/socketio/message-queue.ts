@@ -5,6 +5,7 @@
 
 import type { Logger } from "@dreamer/logger";
 import { $tr } from "../i18n.ts";
+import { safeLoggerError } from "../logger-safe.ts";
 import { SocketIOSocket } from "./socket.ts";
 
 /**
@@ -110,7 +111,7 @@ export class MessageQueue {
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
             const msg = $tr("log.socketio.messageSendError");
-            (this.logger?.error ?? console.error)(msg, error);
+            safeLoggerError(this.logger, msg, error);
           }
         }
       }

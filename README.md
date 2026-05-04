@@ -464,14 +464,11 @@ See [TEST_REPORT.md](./docs/en-US/TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./docs/en-US/CHANGELOG.md) for full history.
 
-**Latest (v1.0.12 - 2026-02-20)**: **Fixed** – In `Client.connect()`, after
-`await this.transport.connect(url)`, if `disconnect()` was called during the
-await (e.g. component unmount or effect cleanup), `this.transport` could be set
-to `null`, leading to
-`TypeError: Cannot read properties of null (reading
-'on')`. A guard now returns
-early when `this.transport === null` after the await, avoiding the crash. See
-[CHANGELOG.md](./docs/en-US/CHANGELOG.md).
+**Latest (v1.1.0 - 2026-05-04)**: **Fixed** – Replaced unbound
+`(logger?.error ?? console.error)(…)` / `(logger?.warn ?? console.warn)(…)`
+calls with helpers so `@dreamer/logger` methods keep correct `this`, avoiding
+`Cannot read properties of undefined (reading 'log')` on WebSocket error paths
+and similar sites. See [CHANGELOG.md](./docs/en-US/CHANGELOG.md).
 
 ---
 

@@ -15,6 +15,7 @@
 
 import type { Logger } from "@dreamer/logger";
 import { MongoClient } from "mongodb";
+import { safeLoggerError, safeLoggerWarn } from "../logger-safe.ts";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
 
@@ -306,7 +307,8 @@ export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
       }
     } catch (error) {
       // 忽略索引创建错误（可能已存在）
-      (this.logger?.warn ?? console.warn)(
+      safeLoggerWarn(
+        this.logger,
         this.tr(
           "log.socketioAdapter.mongoCreateIndexFailed",
           "创建索引失败（可能已存在）",
@@ -555,7 +557,8 @@ export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
       return Promise.resolve();
     } catch (error) {
       // Change Streams 不可用，降级到轮询
-      (this.logger?.warn ?? console.warn)(
+      safeLoggerWarn(
+        this.logger,
         this.tr(
           "log.socketioAdapter.mongoChangeStreamsUnavailable",
           "Change Streams 不可用，降级到轮询模式",
@@ -688,7 +691,8 @@ export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
         }
       }
     } catch (error) {
-      (this.logger?.error ?? console.error)(
+      safeLoggerError(
+        this.logger,
         this.tr(
           "log.socketioAdapter.mongoPollingError",
           "轮询消息错误",

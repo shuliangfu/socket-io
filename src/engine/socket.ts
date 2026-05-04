@@ -5,6 +5,7 @@
 
 import type { Logger } from "@dreamer/logger";
 import { $tr } from "../i18n.ts";
+import { safeLoggerError } from "../logger-safe.ts";
 import { EnginePacket, EnginePacketType, Handshake } from "../types.ts";
 import { Transport } from "./transport.ts";
 import { WebSocketTransport } from "./websocket-transport.ts";
@@ -188,7 +189,8 @@ export class EngineSocket {
       try {
         listener(packet);
       } catch (error) {
-        (this.logger?.error ?? console.error)(
+        safeLoggerError(
+          this.logger,
           $tr("log.socketioEngine.eventListenerError"),
           error,
         );
@@ -253,7 +255,8 @@ export class EngineSocket {
       try {
         this.onCloseCallback();
       } catch (error) {
-        (this.logger?.error ?? console.error)(
+        safeLoggerError(
+          this.logger,
           $tr("log.socketioEngine.onCloseCallbackError"),
           error,
         );

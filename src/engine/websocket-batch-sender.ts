@@ -5,6 +5,7 @@
 
 import type { Logger } from "@dreamer/logger";
 import { $tr } from "../i18n.ts";
+import { safeLoggerError } from "../logger-safe.ts";
 import type { Locale } from "../i18n.ts";
 
 /**
@@ -88,7 +89,7 @@ export class WebSocketBatchSender {
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
             const msg = $tr("log.socketioEngine.wsSendError");
-            (this.logger?.error ?? console.error)(msg, error);
+            safeLoggerError(this.logger, msg, error);
           }
         }
       }

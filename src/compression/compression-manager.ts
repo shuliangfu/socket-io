@@ -4,6 +4,7 @@
  */
 
 import type { Logger } from "@dreamer/logger";
+import { safeLoggerError, safeLoggerWarn } from "../logger-safe.ts";
 
 /**
  * 压缩算法类型
@@ -68,7 +69,7 @@ export class CompressionManager {
         "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+",
       ) ??
         "CompressionStream API 不可用，压缩功能将被禁用。请使用 Deno 1.37+ 或 Bun 1.0+";
-      (this.logger?.warn ?? console.warn)(msg);
+      safeLoggerWarn(this.logger, msg);
       this.enabled = false;
     }
   }
@@ -153,7 +154,7 @@ export class CompressionManager {
         "log.socketio.compressionFailed",
         "压缩失败",
       ) ?? "压缩失败";
-      (this.logger?.error ?? console.error)(msg, error);
+      safeLoggerError(this.logger, msg, error);
       // 压缩失败，返回原始数据
       if (typeof data === "string") {
         return new TextEncoder().encode(data);
