@@ -30,7 +30,8 @@ jobs:
           deno-version: v2.9
 
       - name: Cache dependencies
-        run: deno cache src/mod.ts src/client/mod.ts 2>/dev/null || true
+        continue-on-error: true
+        run: deno cache src/mod.ts src/client/mod.ts
 
       - name: Check
         run: deno check src/mod.ts src/client/mod.ts
