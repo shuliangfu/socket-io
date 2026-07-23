@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.0] - 2026-07-23
+
+### Added
+
+- **Node.js 22+ support**: Full cross-runtime compatibility — Deno, Bun, and
+  Node.js 22+ now share one unified API. Added `package.json` (engines.node
+  `>=22`), `tsconfig.json`, `.npmrc`, and a `test:node` script (`tsx --test`).
+- **CI**: Rewrote `.github/workflows/ci.yml` to a 9-job matrix — 3 Deno v2.9 +
+  3 Bun + 3 Node.js 22 (Linux/macOS/Windows). No Chromium required (no browser
+  tests).
+
+### Changed
+
+- **Dependencies**: Bumped `@dreamer/runtime-adapter` ^1.0.18 → ^1.2.2 (brings
+  `IS_NODE` + Node fs/net/serve APIs), `@dreamer/i18n` → ^1.1.2,
+  `@dreamer/logger` → ^1.1.0, `@dreamer/crypto` → ^1.1.0,
+  `@dreamer/test` → ^1.2.3.
+- **`src/server.ts`**: `serve()` now `await`ed — runtime-adapter's `serve()`
+  returns `Promise<ServeHandle>` under Node (port binding is async); without
+  `await`, `this.httpServer` was a Promise in Node and `shutdown()` failed.
+- **Lazy-load adapters**: `src/adapters/redis.ts` and `src/adapters/mongodb.ts`
+  moved their top-level `import { createClient } from "redis"` /
+  `import { MongoClient } from "mongodb"` into dynamic `await import()` inside
+  the `connect*()` methods. Previously the static re-export chain
+  (`adapters/mod.ts` → `mod.ts`) eager-loaded redis/mongodb whenever
+  `import { Server }` was used, breaking Bun module loading and forcing Node to
+  install them unconditionally. Now they load only on actual connection.
+- **`src/engine/websocket-batch-sender.ts`**: `ws.send(task.data)` cast to
+  `string | BufferSource` to satisfy the TS 5.7+ `Uint8Array<ArrayBufferLike>`
+  lib change (runtime value unchanged).
+- **`publish.yml`**: tags-only trigger (already `npx jsr publish`, no
+  `--no-check`).
+- **`.gitignore`**: ignore `package-lock.json`.
+
+### Tests
+
+- 3-runtime unit suite: Deno 206 passed (189 unit + 17 lifecycle hooks) / Bun
+  189 passed / Node 189 passed, across 17 test files. All adapter tests
+  (Memory/Redis/MongoDB) are construction-only — no real Redis/MongoDB service
+  required in CI.
+
+### Compatibility
+
+- Node.js 22+ fully supported (server). Browser client unchanged.
+
+---
+
 ## [1.1.0] - 2026-05-04
 
 ### Fixed

@@ -14,7 +14,6 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { MongoClient } from "mongodb";
 import { safeLoggerError, safeLoggerWarn } from "../logger-safe.ts";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
@@ -174,6 +173,10 @@ export class MongoDBAdapter<TClient extends MongoDBClient = MongoDBClient>
    */
   private async connectMongoDB(): Promise<void> {
     try {
+      // 【Why】懒加载 mongodb 包：顶层 import 会经 adapters/mod.ts 静态 re-export
+      // 触发 eager 加载，导致 `import { Server }` 也强载 mongodb npm 包（Bun 模块
+      // 加载失败、Node 无谓安装）。移入 connect() 内动态 import，仅实际连接时加载。
+      const { MongoClient } = await import("mongodb");
       const url = this.buildConnectionUrl();
       const mongoClient = new MongoClient(url);
       await mongoClient.connect();

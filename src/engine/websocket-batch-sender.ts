@@ -85,7 +85,10 @@ export class WebSocketBatchSender {
       for (const task of batch) {
         if (task.ws.readyState === WebSocket.OPEN) {
           try {
-            task.ws.send(task.data);
+            // 【Why】cast 安抚 TS 5.7+ lib 变更：Uint8Array 变为泛型
+            // Uint8Array<ArrayBufferLike>，与 WebSocket.send 的 BufferSource
+            // （ArrayBufferView<ArrayBuffer>）泛型不兼容；运行时值合法，cast 即可。
+            task.ws.send(task.data as string | BufferSource);
           } catch (error) {
             // 忽略发送错误（可能是连接已关闭）
             const msg = $tr("log.socketioEngine.wsSendError");

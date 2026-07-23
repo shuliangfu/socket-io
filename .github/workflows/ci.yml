@@ -1,4 +1,4 @@
-# CI: 在 macOS、Ubuntu、Windows 上运行测试，验证跨平台兼容性
+# CI: 三端跨平台测试（Deno / Bun / Node.js 22+），验证跨运行时兼容性
 name: CI
 
 on:
@@ -13,65 +13,72 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  test-linux:
-    runs-on: ubuntu-latest
+  # ─────────────────────────────────────────────────────────────────────────
+  # Deno（Linux / macOS / Windows）
+  # ─────────────────────────────────────────────────────────────────────────
+  test-deno:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.5
+          deno-version: v2.9
 
       - name: Cache dependencies
-        run: deno cache src/mod.ts tests/ 2>/dev/null || true
+        run: deno cache src/mod.ts src/client/mod.ts 2>/dev/null || true
 
       - name: Check
-        run: deno check src/ tests/
+        run: deno check src/mod.ts src/client/mod.ts
 
       - name: Lint
-        run: deno lint
+        run: deno lint src/
 
       - name: Test (Deno)
-        run: deno test -A --no-check tests/
+        run: deno test --allow-all tests/*.test.ts
 
-  test-macos:
-    runs-on: macos-latest
+  # ─────────────────────────────────────────────────────────────────────────
+  # Bun（Linux / macOS / Windows）
+  # ─────────────────────────────────────────────────────────────────────────
+  test-bun:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.5
+      - uses: oven-sh/setup-bun@v2
 
-      - name: Cache dependencies
-        run: deno cache src/mod.ts tests/ 2>/dev/null || true
+      - name: Install dependencies
+        run: bun install
 
-      - name: Check
-        run: deno check src/ tests/
+      - name: Test (Bun)
+        run: bun test tests/
 
-      - name: Lint
-        run: deno lint
-
-      - name: Test (Deno, macOS)
-        run: deno test -A --no-check tests/
-
-  test-windows:
-    runs-on: windows-latest
+  # ─────────────────────────────────────────────────────────────────────────
+  # Node.js 22（Linux / macOS / Windows）
+  # ─────────────────────────────────────────────────────────────────────────
+  test-node:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v4
         with:
-          deno-version: v2.5
+          node-version: "22"
 
-      - name: Cache dependencies
-        run: deno cache src/mod.ts tests/
+      - name: Install dependencies
+        run: npm install
 
-      - name: Check
-        run: deno check src/ tests/
-
-      - name: Lint
-        run: deno lint
-
-      - name: Test (Deno, Windows)
-        run: deno test -A --no-check tests/
+      - name: Test (Node)
+        run: npm run test:node

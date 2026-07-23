@@ -23,7 +23,7 @@ export class PollingTransport extends Transport {
   /** 当前等待的轮询请求回调 */
   private currentPollResolve: PollingResolve | null = null;
   /** 轮询超时定时器 */
-  private pollTimeout: number | null = null;
+  private pollTimeout: ReturnType<typeof setTimeout> | null = null;
   /** 轮询超时时间（毫秒） */
   private readonly timeout: number;
   /** 加密管理器（可选） */

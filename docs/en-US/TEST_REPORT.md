@@ -5,24 +5,28 @@
 This report documents the test results for the `@dreamer/socket.io` library. The
 library provides a full Socket.IO server and client implementation with
 real-time bidirectional communication, room management, namespaces, message
-encryption, and compatibility with Deno and Bun runtimes.
+encryption, and compatibility with Deno, Bun, and Node.js 22+ runtimes.
 
 ## Test Environment
 
-- **Deno**: 2.5+
-- **Bun**: 1.3.5+
+- **Deno**: 2.9+
+- **Bun**: 1.3+
+- **Node.js**: 22+
 - **Test Framework**: @dreamer/test
-- **Test Date**: 2026-02-17
+- **Test Date**: 2026-07-23
 
 ## 📊 Test Summary
 
-| Metric             | Value                   |
-| ------------------ | ----------------------- |
-| **Total Tests**    | 203                     |
-| **Passed**         | 203                     |
-| **Failed**         | 0                       |
-| **Pass Rate**      | 100%                    |
-| **Execution Time** | Deno ~44–45s / Bun ~38s |
+| Metric             | Value                                  |
+| ------------------ | -------------------------------------- |
+| **Total Tests**    | 189 (per runtime)                      |
+| **Passed**         | Deno 206 / Bun 189 / Node 189          |
+| **Failed**         | 0                                      |
+| **Pass Rate**      | 100%                                   |
+| **Execution Time** | Deno ~39s / Bun ~38s / Node ~10s       |
+
+> Deno counts 17 `@dreamer/test cleanup browsers` lifecycle hooks (+1 per file)
+> on top of the 189 unit tests; Bun and Node report 189 unit tests each.
 
 ## ✅ Test Result Summary
 
@@ -371,16 +375,17 @@ listen/remove, connection status.
 
 ## ✅ Conclusion
 
-All 203 tests pass (100% pass rate). Core functionality, edge cases, and
+All 189 unit tests pass across three runtimes (Deno 206 incl. lifecycle hooks /
+Bun 189 / Node 189, 100% pass rate). Core functionality, edge cases, and
 integration scenarios are well covered. New API methods (once,
 removeAllListeners, socketsJoin, socketsLeave, fetchSockets, disconnectSockets,
 Server emit/to/in/except) are tested. Optimization features (error i18n tr,
 adapter generics, memory/timer review, API optimization) are covered. Code
 quality is high, functionality is stable, and the library is suitable for
-production use.
+production use across Deno, Bun, and Node.js 22+.
 
 ---
 
-**Report generated**: 2026-02-17\
-**Environment**: Deno 2.5+, Bun 1.3.5+\
+**Report generated**: 2026-07-23\
+**Environment**: Deno 2.9+, Bun 1.3+, Node.js 22+\
 **Framework**: @dreamer/test

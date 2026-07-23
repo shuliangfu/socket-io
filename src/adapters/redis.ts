@@ -4,7 +4,6 @@
  */
 
 import type { Logger } from "@dreamer/logger";
-import { createClient } from "redis";
 import { safeLoggerError } from "../logger-safe.ts";
 import type { SocketIOSocket } from "../socketio/socket.ts";
 import type { AdapterMessage, SocketIOAdapter } from "./types.ts";
@@ -180,6 +179,10 @@ export class RedisAdapter<
   private async connectRedis(): Promise<void> {
     if (this.connectionConfig && !this.internalClient) {
       try {
+        // 【Why】懒加载 redis 包：顶层 import 会经 adapters/mod.ts 静态 re-export
+        // 触发 eager 加载，导致 `import { Server }` 也强载 redis npm 包（Bun 模块
+        // 加载失败、Node 无谓安装）。移入 connect() 内动态 import，仅实际连接时加载。
+        const { createClient } = await import("redis");
         const redisClient = createClient({
           url: this.connectionConfig.url ||
             `redis://${this.connectionConfig.host || "127.0.0.1"}:${
@@ -210,6 +213,8 @@ export class RedisAdapter<
   private async connectPubSub(): Promise<void> {
     if (this.pubsubConnectionConfig && !this.internalPubsubClient) {
       try {
+        // 【Why】懒加载 redis 包（同 connectRedis），避免顶层 eager 加载。
+        const { createClient } = await import("redis");
         // 创建订阅客户端（用于接收消息）
         const subscribeClient = createClient({
           url: this.pubsubConnectionConfig.url ||

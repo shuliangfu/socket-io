@@ -1,13 +1,13 @@
 # @dreamer/socket.io
 
-> High-performance, cross-runtime Socket.IO implementation compatible with Deno
-> and Bun. Full real-time bidirectional communication.
+> High-performance, cross-runtime Socket.IO implementation compatible with Deno,
+> Bun, and Node.js 22+. Full real-time bidirectional communication.
 
 English | [中文 (Chinese)](./docs/zh-CN/README.md)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-203%20passed-brightgreen)](./docs/en-US/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-189%20passed%20(3%20runtimes)-brightgreen)](./docs/en-US/TEST_REPORT.md)
 
 ---
 
@@ -24,7 +24,7 @@ services, multiplayer games, IoT.
 
 ### Core
 
-- **Cross-runtime**: Deno 2.6+ and Bun 1.3.5+, no Node.js. Unified API via
+- **Cross-runtime**: Deno 2.9+, Bun 1.3+, and Node.js 22+. Unified API via
   @dreamer/runtime-adapter
 - **Transports**: WebSocket (primary), HTTP long polling (fallback), smart
   upgrade/downgrade
@@ -61,7 +61,7 @@ services, multiplayer games, IoT.
 
 ## 🎨 Design
 
-- **Main package**: Server (Deno/Bun)
+- **Main package**: Server (Deno/Bun/Node.js 22+)
 - **Client subpackage**: Browser (`jsr:@dreamer/socket.io/client`)
 
 ---
@@ -89,15 +89,22 @@ deno add jsr:@dreamer/socket.io
 bunx jsr add @dreamer/socket.io
 ```
 
+### Node.js 22+
+
+```bash
+npx jsr add @dreamer/socket.io
+```
+
 ---
 
 ## 🌍 Compatibility
 
 | Environment      | Version | Status                                         |
 | ---------------- | ------- | ---------------------------------------------- |
-| **Deno**         | 2.6+    | ✅ Fully supported                             |
-| **Bun**          | 1.3.5+  | ✅ Fully supported                             |
-| **Server**       | -       | ✅ Deno/Bun                                    |
+| **Deno**         | 2.9+    | ✅ Fully supported                             |
+| **Bun**          | 1.3+    | ✅ Fully supported                             |
+| **Node.js**      | 22+     | ✅ Fully supported                             |
+| **Server**       | -       | ✅ Deno/Bun/Node.js                            |
 | **Client**       | -       | ✅ Browser via `jsr:@dreamer/socket.io/client` |
 | **Dependencies** | -       | 📦 @dreamer/runtime-adapter                    |
 

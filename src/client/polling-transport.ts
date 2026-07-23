@@ -23,7 +23,7 @@ export class ClientPollingTransport extends ClientTransport {
   /** 待发送的数据包队列 */
   private sendQueue: EnginePacket[] = [];
   /** 轮询定时器 */
-  private pollTimer: number | null = null;
+  private pollTimer: ReturnType<typeof setTimeout> | null = null;
   /** AbortController 用于取消 fetch 请求 */
   private abortController: AbortController | null = null;
   /** 加密管理器（可选） */

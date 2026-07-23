@@ -1,13 +1,13 @@
 # @dreamer/socket.io
 
-> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno 和
-> Bun，提供完整的实时双向通信解决方案
+> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno、
+> Bun 和 Node.js 22+，提供完整的实时双向通信解决方案
 
 [English](../../README.md) | 中文 (Chinese)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
-[![Tests](https://img.shields.io/badge/tests-203%20passed-brightgreen)](../en-US/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-189%20passed%20(3%20runtimes)-brightgreen)](../en-US/TEST_REPORT.md)
 
 ---
 
@@ -24,7 +24,7 @@
 ### 核心功能
 
 - **跨运行时支持**：
-  - 原生支持 Deno 2.6+ 和 Bun 1.3.5，无需 Node.js
+  - 原生支持 Deno 2.9+、Bun 1.3+ 和 Node.js 22+
   - 统一的 Socket.IO API，代码可在不同运行时无缝切换
   - 基于 @dreamer/runtime-adapter 实现运行时抽象
 
@@ -117,7 +117,7 @@
 
 __所有 @dreamer/_ 包都遵循以下原则_*：
 
-- **主包（@dreamer/xxx）**：用于服务端（兼容 Deno 和 Bun 运行时）
+- **主包（@dreamer/xxx）**：用于服务端（兼容 Deno、Bun 和 Node.js 22+ 运行时）
 - **客户端子包（@dreamer/xxx/client）**：用于客户端（浏览器环境）
 
 这样可以：
@@ -153,17 +153,24 @@ deno add jsr:@dreamer/socket.io
 bunx jsr add @dreamer/socket.io
 ```
 
+### Node.js 22+
+
+```bash
+npx jsr add @dreamer/socket.io
+```
+
 ---
 
 ## 🌍 环境兼容性
 
-| 环境       | 版本要求 | 状态                                                             |
-| ---------- | -------- | ---------------------------------------------------------------- |
-| **Deno**   | 2.6+     | ✅ 完全支持                                                      |
-| **Bun**    | 1.3.5    | ✅ 完全支持                                                      |
-| **服务端** | -        | ✅ 支持（兼容 Deno 和 Bun 运行时）                               |
-| **客户端** | -        | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
-| **依赖**   | -        | 📦 @dreamer/runtime-adapter（用于跨运行时兼容）                  |
+| 环境         | 版本要求 | 状态                                                             |
+| ------------ | -------- | ---------------------------------------------------------------- |
+| **Deno**     | 2.9+     | ✅ 完全支持                                                      |
+| **Bun**      | 1.3+     | ✅ 完全支持                                                      |
+| **Node.js**  | 22+      | ✅ 完全支持                                                      |
+| **服务端**   | -        | ✅ 支持（兼容 Deno、Bun 和 Node.js 运行时）                      |
+| **客户端**   | -        | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
+| **依赖**     | -        | 📦 @dreamer/runtime-adapter（用于跨运行时兼容）                  |
 
 ---
 

@@ -280,7 +280,11 @@ export class Server {
     }
 
     // 使用 runtime-adapter 的 serve API，兼容 Deno 和 Bun
-    this.httpServer = serve(
+    // 【Why】runtime-adapter 的 serve() 在 Deno/Bun 同步返回 ServeHandle，
+    // 在 Node 分支返回 Promise<ServeHandle>（端口绑定异步完成后再 resolve）。
+    // 调用方须 await 以对齐三端语义，否则 Node 下 this.httpServer 为 Promise，
+    // 后续 shutdown() 调用报 not a function。
+    this.httpServer = await serve(
       {
         port: serverPort,
         host: serverHost === "0.0.0.0" ? undefined : serverHost,
