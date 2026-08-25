@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.2.1] - 2026-08-26
+
+### Fixed
+
+- **CORS Origin reflection**: Open mode (unset `cors.origin` or `origin: "*"`)
+  no longer reflects arbitrary `Origin` with
+  `Access-Control-Allow-Credentials:
+  true`. Responses use
+  `Access-Control-Allow-Origin: *` without credentials. Allowlisted origins
+  still reflect and default to credentials (opt out with
+  `cors.credentials: false`).
+- **Handshake CORS**: Removed hardcoded `Access-Control-Allow-Origin: *` on the
+  handshake JSON path; CORS headers are applied uniformly via
+  `handleIncomingRequest` / `applyCorsHeaders`.
+
+### Added
+
+- Unit tests for open-mode vs allowlist CORS (`tests/cors-origin.test.ts`).
+
 ## [1.2.0] - 2026-07-23
 
 ### Added
@@ -14,16 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **Node.js 22+ support**: Full cross-runtime compatibility — Deno, Bun, and
   Node.js 22+ now share one unified API. Added `package.json` (engines.node
   `>=22`), `tsconfig.json`, `.npmrc`, and a `test:node` script (`tsx --test`).
-- **CI**: Rewrote `.github/workflows/ci.yml` to a 9-job matrix — 3 Deno v2.9 +
-  3 Bun + 3 Node.js 22 (Linux/macOS/Windows). No Chromium required (no browser
+- **CI**: Rewrote `.github/workflows/ci.yml` to a 9-job matrix — 3 Deno v2.9 + 3
+  Bun + 3 Node.js 22 (Linux/macOS/Windows). No Chromium required (no browser
   tests).
 
 ### Changed
 
 - **Dependencies**: Bumped `@dreamer/runtime-adapter` ^1.0.18 → ^1.2.2 (brings
   `IS_NODE` + Node fs/net/serve APIs), `@dreamer/i18n` → ^1.1.2,
-  `@dreamer/logger` → ^1.1.0, `@dreamer/crypto` → ^1.1.0,
-  `@dreamer/test` → ^1.2.3.
+  `@dreamer/logger` → ^1.1.0, `@dreamer/crypto` → ^1.1.0, `@dreamer/test` →
+  ^1.2.3.
 - **`src/server.ts`**: `serve()` now `await`ed — runtime-adapter's `serve()`
   returns `Promise<ServeHandle>` under Node (port binding is async); without
   `await`, `this.httpServer` was a Promise in Node and `shutdown()` failed.

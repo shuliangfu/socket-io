@@ -1,6 +1,6 @@
 {
   "name": "@dreamer/socket-io",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Socket.IO server and client for Deno/Bun/Node.js 22+.",
   "type": "module",
   "license": "Apache-2.0",

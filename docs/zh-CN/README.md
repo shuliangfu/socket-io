@@ -1,13 +1,13 @@
 # @dreamer/socket.io
 
-> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno、
-> Bun 和 Node.js 22+，提供完整的实时双向通信解决方案
+> 一个高性能、跨运行时的 Socket.IO 实现，兼容 Deno、 Bun 和 Node.js
+> 22+，提供完整的实时双向通信解决方案
 
 [English](../../README.md) | 中文 (Chinese)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
-[![Tests](https://img.shields.io/badge/tests-189%20passed%20(3%20runtimes)-brightgreen)](../en-US/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-195%20passed-brightgreen)](../en-US/TEST_REPORT.md)
 
 ---
 
@@ -163,14 +163,14 @@ npx jsr add @dreamer/socket.io
 
 ## 🌍 环境兼容性
 
-| 环境         | 版本要求 | 状态                                                             |
-| ------------ | -------- | ---------------------------------------------------------------- |
-| **Deno**     | 2.9+     | ✅ 完全支持                                                      |
-| **Bun**      | 1.3+     | ✅ 完全支持                                                      |
-| **Node.js**  | 22+      | ✅ 完全支持                                                      |
-| **服务端**   | -        | ✅ 支持（兼容 Deno、Bun 和 Node.js 运行时）                      |
-| **客户端**   | -        | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
-| **依赖**     | -        | 📦 @dreamer/runtime-adapter（用于跨运行时兼容）                  |
+| 环境        | 版本要求 | 状态                                                             |
+| ----------- | -------- | ---------------------------------------------------------------- |
+| **Deno**    | 2.9+     | ✅ 完全支持                                                      |
+| **Bun**     | 1.3+     | ✅ 完全支持                                                      |
+| **Node.js** | 22+      | ✅ 完全支持                                                      |
+| **服务端**  | -        | ✅ 支持（兼容 Deno、Bun 和 Node.js 运行时）                      |
+| **客户端**  | -        | ✅ 支持（浏览器环境，通过 `jsr:@dreamer/socket.io/client` 使用） |
+| **依赖**    | -        | 📦 @dreamer/runtime-adapter（用于跨运行时兼容）                  |
 
 ---
 
@@ -775,10 +775,10 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 **测试概览**:
 
-- ✅ 总测试数: 203
+- ✅ 总测试数: 195 单元（Deno 含 lifecycle 报 213）
 - ✅ 通过率: 100%
-- ✅ 执行时间: Deno ~44–45s / Bun ~38s
-- ✅ 测试覆盖: 核心功能、边界情况、集成场景、优化功能（国际化、泛型、资源清理）
+- ✅ 执行时间: Deno ~40s / Bun ~39s
+- ✅ 测试覆盖: 核心、边界、集成、CORS Origin、优化
 
 ---
 
@@ -786,10 +786,8 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.1.0 - 2026-05-04)**：**修复** – 用安全封装替换未绑定上下文的
-`(logger?.error ?? console.error)(…)`、`(logger?.warn ?? console.warn)(…)`
-调用， 保证 `@dreamer/logger` 在实例上调用，避免 WebSocket error 等路径出现
-`Cannot read properties of undefined (reading 'log')`。详见
+**最新 (v1.2.1 - 2026-08-26)**：**修复** – 开放 CORS 不再反射任意 Origin 并带
+credentials；白名单仍反射。握手 CORS 统一经 `applyCorsHeaders`。详见
 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---

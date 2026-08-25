@@ -345,24 +345,30 @@ export class Server {
       return new Response("Not Found", { status: 404 });
     }
 
-    // 处理 CORS
-    if (this.options.allowCORS !== false) {
-      const origin = request.headers.get("Origin");
-      if (origin && this.isOriginAllowed(origin)) {
-        const headers = new Headers({
-          "Access-Control-Allow-Origin": origin,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-          "Access-Control-Allow-Credentials": "true",
-        });
-        if (request.method === "OPTIONS") {
-          this.debugLog(
-            $tr("log.socketio.corsPreflight", undefined, this.options.lang),
-          );
-          return new Response(null, { status: 200, headers });
-        }
-      }
+    /**
+     * CORS：
+     * - 未配置 `cors.origin` 或为 `"*"`：开放模式，响应 `*`，**不**带 credentials（禁止反射任意 Origin）
+     * - 配置了白名单：仅匹配 Origin 才反射，并默认允许 credentials
+     */
+    const requestOrigin = request.headers.get("Origin");
+    const corsHeaders = this.buildCorsHeaders(requestOrigin);
+
+    if (request.method === "OPTIONS") {
+      this.debugLog(
+        $tr("log.socketio.corsPreflight", undefined, this.options.lang),
+      );
+      return new Response(null, {
+        status: 200,
+        headers: corsHeaders ??
+          new Headers({
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          }),
+      });
     }
+
+    const applyCors = (res: Response): Response =>
+      this.applyCorsHeaders(res, corsHeaders);
 
     // 解析路径：/socket.io/{transport}/{sid}?...
     const pathParts = path.slice(this.options.path.length).split("/");
@@ -393,7 +399,7 @@ export class Server {
           this.options.lang,
         ),
       );
-      return res;
+      return applyCors(res);
     }
 
     // 处理 WebSocket 传输
@@ -413,7 +419,7 @@ export class Server {
           this.options.lang,
         ),
       );
-      return res;
+      return applyCors(res);
     }
 
     // 处理 Engine.IO 握手
@@ -429,13 +435,13 @@ export class Server {
           this.options.lang,
         ),
       );
-      return res;
+      return applyCors(res);
     }
 
     this.debugLog(
       $tr("log.socketio.noMatchBranch", undefined, this.options.lang),
     );
-    return new Response("Not Found", { status: 404 });
+    return applyCors(new Response("Not Found", { status: 404 }));
   }
 
   /**
@@ -494,7 +500,7 @@ export class Server {
       }
     });
 
-    // 返回握手响应
+    // CORS 由 handleRequest 统一 applyCorsHeaders；此处只设内容类型
     return new Response(
       JSON.stringify({
         sid,
@@ -505,7 +511,6 @@ export class Server {
       {
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
         },
       },
     );
@@ -1127,22 +1132,73 @@ export class Server {
   }
 
   /**
-   * 检查来源是否允许
+   * 构建 CORS 响应头。
+   *
+   * - `allowCORS === false`：不返回 CORS 头
+   * - 未配置 `cors.origin` 或为 `"*"`：`Access-Control-Allow-Origin: *`，不带 credentials
+   * - 白名单：仅匹配时反射 Origin；默认带 credentials（可用 `cors.credentials: false` 关闭）
+   */
+  private buildCorsHeaders(requestOrigin: string | null): Headers | null {
+    if (this.options.allowCORS === false) {
+      return null;
+    }
+
+    const cors = this.options.cors;
+    const configured = cors?.origin;
+    const methods = (cors?.methods ?? ["GET", "POST", "OPTIONS"]).join(", ");
+    const headers = new Headers({
+      "Access-Control-Allow-Methods": methods,
+      "Access-Control-Allow-Headers": "Content-Type",
+    });
+
+    if (configured == null || configured === "*") {
+      headers.set("Access-Control-Allow-Origin", "*");
+      return headers;
+    }
+
+    if (requestOrigin && this.isOriginAllowed(requestOrigin)) {
+      headers.set("Access-Control-Allow-Origin", requestOrigin);
+      if (cors?.credentials !== false) {
+        headers.set("Access-Control-Allow-Credentials", "true");
+      }
+      return headers;
+    }
+
+    return null;
+  }
+
+  /** 将已解析的 CORS 头合并到响应（覆盖运输层可能写死的 ACAO） */
+  private applyCorsHeaders(
+    response: Response,
+    corsHeaders: Headers | null,
+  ): Response {
+    if (!corsHeaders) {
+      return response;
+    }
+    const headers = new Headers(response.headers);
+    corsHeaders.forEach((value, key) => {
+      headers.set(key, value);
+    });
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+
+  /**
+   * 检查来源是否在白名单内（开放模式 `"*"` / 未配置视为允许）
    * @param origin 来源
    * @returns 是否允许
    */
   private isOriginAllowed(origin: string): boolean {
-    if (!this.options.cors) {
-      return true;
-    }
-
-    const corsOrigin = this.options.cors.origin;
-    if (!corsOrigin) {
+    const corsOrigin = this.options.cors?.origin;
+    if (corsOrigin == null || corsOrigin === "*") {
       return true;
     }
 
     if (typeof corsOrigin === "string") {
-      return corsOrigin === "*" || corsOrigin === origin;
+      return corsOrigin === origin;
     }
 
     if (Array.isArray(corsOrigin)) {
@@ -1153,6 +1209,6 @@ export class Server {
       return corsOrigin(origin);
     }
 
-    return true;
+    return false;
   }
 }

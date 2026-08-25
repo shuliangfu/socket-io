@@ -7,7 +7,7 @@ English | [中文 (Chinese)](./docs/zh-CN/README.md)
 
 [![JSR](https://jsr.io/badges/@dreamer/socket.io)](https://jsr.io/@dreamer/socket.io)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-189%20passed%20(3%20runtimes)-brightgreen)](./docs/en-US/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-195%20passed-brightgreen)](./docs/en-US/TEST_REPORT.md)
 
 ---
 
@@ -459,11 +459,10 @@ await io.listen();
 See [TEST_REPORT.md](./docs/en-US/TEST_REPORT.md) (English) ·
 [中文测试报告](./docs/zh-CN/TEST_REPORT.md)
 
-- **Total**: 203
+- **Total**: 195 unit tests (Deno reported 213 incl. lifecycle hooks)
 - **Pass rate**: 100%
-- **Execution time**: Deno ~44–45s / Bun ~38s
-- **Coverage**: Core, edge cases, integration, optimization (i18n, generics,
-  cleanup)
+- **Execution time**: Deno ~40s / Bun ~39s
+- **Coverage**: Core, edge cases, integration, CORS Origin, optimization
 
 ---
 
@@ -471,11 +470,10 @@ See [TEST_REPORT.md](./docs/en-US/TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./docs/en-US/CHANGELOG.md) for full history.
 
-**Latest (v1.1.0 - 2026-05-04)**: **Fixed** – Replaced unbound
-`(logger?.error ?? console.error)(…)` / `(logger?.warn ?? console.warn)(…)`
-calls with helpers so `@dreamer/logger` methods keep correct `this`, avoiding
-`Cannot read properties of undefined (reading 'log')` on WebSocket error paths
-and similar sites. See [CHANGELOG.md](./docs/en-US/CHANGELOG.md).
+**Latest (v1.2.1 - 2026-08-26)**: **Fixed** – Open CORS mode no longer reflects
+arbitrary `Origin` with credentials; allowlist origins still reflect. Handshake
+CORS unified via `applyCorsHeaders`. See
+[CHANGELOG.md](./docs/en-US/CHANGELOG.md).
 
 ---
 

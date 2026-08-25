@@ -7,30 +7,47 @@
 
 ---
 
+## [1.2.1] - 2026-08-26
+
+### 修复
+
+- **CORS Origin 反射**：开放模式（未配置 `cors.origin` 或 `origin: "*"`）不再把
+  任意 `Origin` 反射为 `Access-Control-Allow-Origin` 并附带
+  `Access-Control-Allow-Credentials: true`。改为响应 `*` 且不带 credentials。
+  白名单 Origin 仍反射，并默认带 credentials（可用 `cors.credentials: false`
+  关闭）。
+- **握手 CORS**：去掉握手 JSON 路径上写死的 `Access-Control-Allow-Origin: *`；
+  由 `handleIncomingRequest` / `applyCorsHeaders` 统一附加 CORS 头。
+
+### 新增
+
+- 开放模式 vs 白名单 CORS 单测（`tests/cors-origin.test.ts`）。
+
 ## [1.2.0] - 2026-07-23
 
 ### 新增
 
-- **Node.js 22+ 支持**：完整跨运行时兼容——Deno、Bun、Node.js 22+ 共用同一套
-  统一 API。新增 `package.json`（engines.node `>=22`）、`tsconfig.json`、
-  `.npmrc` 与 `test:node` 脚本（`tsx --test`）。
+- **Node.js 22+ 支持**：完整跨运行时兼容——Deno、Bun、Node.js 22+ 共用同一套 统一
+  API。新增 `package.json`（engines.node `>=22`）、`tsconfig.json`、 `.npmrc` 与
+  `test:node` 脚本（`tsx --test`）。
 - **CI**：重写 `.github/workflows/ci.yml` 为 9-job 矩阵——3 Deno v2.9 + 3 Bun
-  + 3 Node.js 22（Linux/macOS/Windows），无需 Chromium（无浏览器测试）。
+  - 3 Node.js 22（Linux/macOS/Windows），无需 Chromium（无浏览器测试）。
 
 ### 变更
 
 - **依赖升级**：`@dreamer/runtime-adapter` ^1.0.18 → ^1.2.2（带来 `IS_NODE` +
   Node fs/net/serve API），`@dreamer/i18n` → ^1.1.2，`@dreamer/logger` →
   ^1.1.0，`@dreamer/crypto` → ^1.1.0，`@dreamer/test` → ^1.2.3。
-- **`src/server.ts`**：`serve()` 改为 `await`——runtime-adapter 的 `serve()`
-  在 Node 下返回 `Promise<ServeHandle>`（端口绑定异步完成）；不加 `await` 时
-  Node 下 `this.httpServer` 为 Promise，`shutdown()` 调用失败。
-- **适配器懒加载**：`src/adapters/redis.ts` 与 `src/adapters/mongodb.ts` 将
-  顶层 `import { createClient } from "redis"` / `import { MongoClient } from
-  "mongodb"` 移入 `connect*()` 方法内的动态 `await import()`。原先静态
-  re-export 链（`adapters/mod.ts` → `mod.ts`）会在 `import { Server }` 时
-  eager 加载 redis/mongodb，致 Bun 模块加载失败、Node 被迫无谓安装。现仅在
-  实际连接时加载。
+- **`src/server.ts`**：`serve()` 改为 `await`——runtime-adapter 的 `serve()` 在
+  Node 下返回 `Promise<ServeHandle>`（端口绑定异步完成）；不加 `await` 时 Node
+  下 `this.httpServer` 为 Promise，`shutdown()` 调用失败。
+- **适配器懒加载**：`src/adapters/redis.ts` 与 `src/adapters/mongodb.ts` 将 顶层
+  `import { createClient } from "redis"` /
+  `import { MongoClient } from
+  "mongodb"` 移入 `connect*()` 方法内的动态
+  `await import()`。原先静态 re-export 链（`adapters/mod.ts` → `mod.ts`）会在
+  `import { Server }` 时 eager 加载 redis/mongodb，致 Bun 模块加载失败、Node
+  被迫无谓安装。现仅在 实际连接时加载。
 - **`src/engine/websocket-batch-sender.ts`**：`ws.send(task.data)` 加 cast 为
   `string | BufferSource`，安抚 TS 5.7+ `Uint8Array<ArrayBufferLike>` lib 变更
   （运行时值不变）。
@@ -39,8 +56,8 @@
 
 ### 测试
 
-- 三端单元套件：Deno 206 passed（189 单元 + 17 lifecycle hook）/ Bun 189
-  passed / Node 189 passed，覆盖 17 个测试文件。所有适配器测试
+- 三端单元套件：Deno 206 passed（189 单元 + 17 lifecycle hook）/ Bun 189 passed
+  / Node 189 passed，覆盖 17 个测试文件。所有适配器测试
   （Memory/Redis/MongoDB）仅构造不连真实服务——CI 无需 Redis/MongoDB。
 
 ### 兼容性

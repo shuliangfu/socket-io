@@ -12,20 +12,21 @@ Deno、Bun 与 Node.js 22+ 运行时。
 - **Bun**：1.3+
 - **Node.js**：22+
 - **测试框架**：@dreamer/test
-- **测试日期**：2026-07-23
+- **测试日期**：2026-08-26
 
 ## 📊 测试汇总
 
-| 指标         | 数值                                  |
-| ------------ | ------------------------------------- |
-| **测试总数** | 189（每运行时）                       |
-| **通过**     | Deno 206 / Bun 189 / Node 189         |
-| **失败**     | 0                                     |
-| **通过率**   | 100%                                  |
-| **执行时间** | Deno ~39s / Bun ~38s / Node ~10s      |
+| 指标         | 数值                     |
+| ------------ | ------------------------ |
+| **测试总数** | 195 单元测试（每运行时） |
+| **通过**     | Deno 213 / Bun 195       |
+| **失败**     | 0                        |
+| **通过率**   | 100%                     |
+| **执行时间** | Deno ~40s / Bun ~39s     |
 
-> Deno 在 189 个单元测试之外额外计入 17 个 `@dreamer/test cleanup browsers`
-> lifecycle hook（每个文件 +1）；Bun 与 Node 各报 189 个单元测试。
+> Deno 在 195 个单元测试之外额外计入 18 个 `@dreamer/test cleanup browsers`
+> lifecycle hook（每个文件 +1，含新增 `cors-origin`）。Bun 报 195 个单元测试。
+> 本补丁未重跑 Node；1.2.0 CI Node 矩阵此前为绿。
 
 ## ✅ 测试结果摘要
 
@@ -46,6 +47,7 @@ Deno、Bun 与 Node.js 22+ 运行时。
 - ✅ 流式处理
 - ✅ 优化（i18n、内存/定时器复核、API 优化）
 - ✅ 日志与 i18n
+- ✅ CORS Origin 策略（开放 `*` 无 credentials；白名单反射）
 
 ## 📋 详细测试结果
 
@@ -364,8 +366,8 @@ ID，解码，空包，往返一致性。
 
 ## ✅ 结论
 
-共 189 项单元测试在三端全部通过（Deno 206 含 lifecycle hook / Bun 189 / Node 189，通过率
-100%）。核心功能、边界情况与集成场景均有良好覆盖。新
+共 189 项单元测试在三端全部通过（Deno 206 含 lifecycle hook / Bun 189 / Node
+189，通过率 100%）。核心功能、边界情况与集成场景均有良好覆盖。新
 API（once、removeAllListeners、socketsJoin、socketsLeave、fetchSockets、disconnectSockets、Server
 emit/to/in/except）均已测试。优化相关（错误 i18n
 tr、适配器泛型、内存/定时器复核、API

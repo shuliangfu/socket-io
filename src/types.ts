@@ -39,7 +39,11 @@ export interface ServerOptions {
   transports?: TransportType[];
   /** 是否允许跨域（默认：true） */
   allowCORS?: boolean;
-  /** CORS 来源（默认：*） */
+  /**
+   * CORS 策略。
+   * - 未设 `origin` 或 `origin: "*"`：响应 `Access-Control-Allow-Origin: *`，**不**反射任意 Origin，也不带 credentials
+   * - `origin` 为字符串/数组/函数：仅匹配时反射该 Origin；默认 `credentials: true`（可显式 `false`）
+   */
   cors?: {
     origin?: string | string[] | ((origin: string) => boolean);
     methods?: string[];
