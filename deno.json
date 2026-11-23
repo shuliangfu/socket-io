@@ -44,11 +44,11 @@
     "publish": "deno publish"
   },
   "imports": {
-    "@dreamer/i18n": "jsr:@dreamer/i18n@^1.1.2",
-    "@dreamer/test": "jsr:@dreamer/test@^1.2.3",
-    "@dreamer/logger": "jsr:@dreamer/logger@^1.1.0",
+    "@dreamer/i18n": "jsr:@dreamer/i18n@^1.1.3",
+    "@dreamer/test": "jsr:@dreamer/test@^1.2.5",
+    "@dreamer/logger": "jsr:@dreamer/logger@^1.1.1",
     "@dreamer/crypto": "jsr:@dreamer/crypto@^1.1.0",
-    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@^1.2.2",
+    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@^1.2.3",
     "mongodb": "npm:mongodb@7.0.0",
     "redis": "npm:redis@5.10.0"
   },

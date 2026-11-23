@@ -1191,6 +1191,10 @@ export class Server {
    * @param origin 来源
    * @returns 是否允许
    */
+  /** 当前 cors.origin 数组的 O(1) 查找表（随数组引用变化重建） */
+  private corsOriginSet: Set<string> | null = null;
+  private corsOriginArrayRef: string[] | null = null;
+
   private isOriginAllowed(origin: string): boolean {
     const corsOrigin = this.options.cors?.origin;
     if (corsOrigin == null || corsOrigin === "*") {
@@ -1202,7 +1206,11 @@ export class Server {
     }
 
     if (Array.isArray(corsOrigin)) {
-      return corsOrigin.includes(origin);
+      if (this.corsOriginArrayRef !== corsOrigin) {
+        this.corsOriginArrayRef = corsOrigin;
+        this.corsOriginSet = new Set(corsOrigin);
+      }
+      return this.corsOriginSet!.has(origin);
     }
 
     if (typeof corsOrigin === "function") {

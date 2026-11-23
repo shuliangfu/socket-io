@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Performance
+
+- CORS origin array allowlists use a `Set` for lookups.
+
+### Changed
+
+- Dependencies: `@dreamer/runtime-adapter` `^1.2.2` → `^1.2.3`, `@dreamer/i18n`
+  `^1.1.2` → `^1.1.3`, `@dreamer/logger` `^1.1.0` → `^1.1.1`, `@dreamer/test`
+  `^1.2.3` → `^1.2.5`, `tsx` `^4.19.2` → `^4.23.15`.
+
 ## [1.2.1] - 2026-08-26
 
 ### Fixed
