@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+---
+
+## [1.2.2] - 2026-11-23
+
 ### Performance
 
 - CORS origin array allowlists use a `Set` for lookups.

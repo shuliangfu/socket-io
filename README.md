@@ -470,9 +470,9 @@ See [TEST_REPORT.md](./docs/en-US/TEST_REPORT.md) (English) ·
 
 See [CHANGELOG.md](./docs/en-US/CHANGELOG.md) for full history.
 
-**Latest (v1.2.1 - 2026-08-26)**: **Fixed** – Open CORS mode no longer reflects
-arbitrary `Origin` with credentials; allowlist origins still reflect. Handshake
-CORS unified via `applyCorsHeaders`. See
+**Latest (v1.2.2 - 2026-11-23)**: **Performance** – CORS origin array allowlists
+use a `Set` for lookups. **Changed** – dependency bumps
+(`@dreamer/runtime-adapter` ^1.2.3, etc.). See
 [CHANGELOG.md](./docs/en-US/CHANGELOG.md).
 
 ---

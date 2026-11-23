@@ -13,22 +13,21 @@ encryption, and compatibility with Deno, Bun, and Node.js 22+ runtimes.
 - **Bun**: 1.3+
 - **Node.js**: 22+
 - **Test Framework**: @dreamer/test
-- **Test Date**: 2026-08-26
+- **Test Date**: 2026-11-23
 
 ## 📊 Test Summary
 
-| Metric             | Value                        |
-| ------------------ | ---------------------------- |
-| **Total Tests**    | 195 unit tests (per runtime) |
-| **Passed**         | Deno 213 / Bun 195           |
-| **Failed**         | 0                            |
-| **Pass Rate**      | 100%                         |
-| **Execution Time** | Deno ~40s / Bun ~39s         |
+| Metric             | Value                            |
+| ------------------ | -------------------------------- |
+| **Total Tests**    | 195 unit tests (per runtime)     |
+| **Passed**         | Deno 213 / Bun 195 / Node 195    |
+| **Failed**         | 0                                |
+| **Pass Rate**      | 100%                             |
+| **Execution Time** | Deno ~39s / Bun ~38s / Node ~10s |
 
 > Deno counts 18 `@dreamer/test cleanup browsers` lifecycle hooks (+1 per file)
 > on top of the 195 unit tests (includes new `cors-origin` suite). Bun reports
-> 195 unit tests. Node not re-run for this patch; prior Node matrix remained
-> green on 1.2.0 CI.
+> 195 unit tests. Node reports 195 unit tests as well.
 
 ## ✅ Test Result Summary
 

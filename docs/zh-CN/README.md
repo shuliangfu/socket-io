@@ -786,8 +786,8 @@ MongoDB 分布式适配器，用于多服务器部署。
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
-**最新 (v1.2.1 - 2026-08-26)**：**修复** – 开放 CORS 不再反射任意 Origin 并带
-credentials；白名单仍反射。握手 CORS 统一经 `applyCorsHeaders`。详见
+**最新 (v1.2.2 - 2026-11-23)**：**性能** – CORS origin 数组白名单改为 `Set`
+查找。**变更** – 依赖升级（`@dreamer/runtime-adapter` ^1.2.3 等）。详见
 [CHANGELOG.md](./CHANGELOG.md)。
 
 ---
